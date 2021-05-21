@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from api.schema import schema
+from ariadne.contrib.django.views import GraphQLView
 from django.contrib import admin
 from django.http.response import HttpResponse
 from django.urls import include, path
@@ -26,4 +28,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("hello/", hello),
     path("api/", include("api.urls"), name="api"),
+    path("graphql/", GraphQLView.as_view(schema=schema), name="graphql"),
 ]
