@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "graphene_django",
     "graphql_jwt.refresh_token.apps.RefreshTokenConfig",
     "graphql_auth",
@@ -125,6 +126,12 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+GRAPH_MODELS = {
+    "all_applications": True,
+    "group_models": True,
+}
+
 
 GRAPHENE = {
     "SCHEMA": "core.schema.schema",
