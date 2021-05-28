@@ -1,9 +1,23 @@
+import accounts.schema
 import api.schema
 import graphene
+from graphql_auth.schema import MeQuery, UserQuery
 
 
-class Query(api.schema.Query, graphene.ObjectType):
+class Query(
+    UserQuery,
+    MeQuery,
+    api.schema.Query,
+    graphene.ObjectType,
+):
     pass
 
 
-schema = graphene.Schema(query=Query)
+class Mutation(
+    accounts.schema.AuthMutation,
+    graphene.ObjectType,
+):
+    pass
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
