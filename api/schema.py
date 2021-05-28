@@ -1,13 +1,20 @@
-from ariadne import gql, make_executable_schema
+import graphene
+from graphene_django import DjangoObjectType
 
-from api.queries import query
+from api.models import Post
 
-type_defs = gql(
-    """
-      type Query {
-        hello: String!
-      }
-    """
-)
 
-schema = make_executable_schema(type_defs, query)
+class PostType(graphene.ObjectType):
+    content = graphene.String()
+    created = graphene.DateTime()
+
+    def resolve_content(parent, info):
+        return "I'm then content"
+
+
+class Query(graphene.ObjectType):
+    hello = graphene.String(default_value="Hi")
+    posts = graphene.List(PostType)
+
+    def resolve_posts(self, info, **kwargs):
+        return "Hello"

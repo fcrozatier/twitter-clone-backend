@@ -3,7 +3,6 @@ amqp==5.0.6
 aniso8601==7.0.0
 apipkg==1.5
 appdirs==1.4.4
-ariadne==0.13.0
 asgiref==3.3.4
 attrs==21.2.0
 Babel==2.9.1
@@ -23,12 +22,16 @@ Django==2.2
 django-cors-headers==3.7.0
 django-filter==2.4.0
 django-graphql-auth==0.3.16
+django-graphql-jwt==0.3.0
 django-neomodel==0.0.6
 django-rest-knox==4.1.0
 djangorestframework==3.7.7
 docutils==0.17.1
 execnet==1.8.0
-graphql-core==3.0.5
+graphene==2.1.8
+graphene-django==2.15.0
+graphql-core==2.3.2
+graphql-relay==2.0.1
 gunicorn==20.0.4
 h11==0.12.0
 idna==2.10
@@ -41,7 +44,6 @@ MarkupSafe==1.1.1
 mypy-extensions==0.4.3
 neo4j==4.1.0
 neo4j-driver==4.1.1
-neo4j-graphql-py==0.1.4
 neobolt==1.7.17
 neomodel==4.0.2
 packaging==20.9

@@ -4,7 +4,7 @@ from api.models import Post, User
 
 
 def create(request):
-    user = User(name="James").save()
+    user = User(name="bob").save()
     return HttpResponse(f"Created user {user.name} with id {user.id}")
 
 

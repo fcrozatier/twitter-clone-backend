@@ -13,11 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from api.schema import schema
-from ariadne.contrib.django.views import GraphQLView
+
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.http.response import HttpResponse
 from django.urls import include, path
+from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
+
+from core import settings
 
 
 def hello(request):
@@ -28,5 +32,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("hello/", hello),
     path("api/", include("api.urls"), name="api"),
-    path("graphql/", GraphQLView.as_view(schema=schema), name="graphql"),
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ]
+
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
