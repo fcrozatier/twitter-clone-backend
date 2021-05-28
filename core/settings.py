@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "graphene_django",
+    "accounts",
     "api",
 ]
 
@@ -122,3 +123,5 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 GRAPHENE = {"SCHEMA": "core.schema.schema"}
+
+AUTH_USER_MODEL = "accounts.User"
