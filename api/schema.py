@@ -1,10 +1,7 @@
 import graphene
-from graphene_django import DjangoObjectType
-
-from api.models import Post
 
 
-class PostType(graphene.ObjectType):
+class TweetType(graphene.ObjectType):
     content = graphene.String()
     created = graphene.DateTime()
 
@@ -14,7 +11,7 @@ class PostType(graphene.ObjectType):
 
 class Query(graphene.ObjectType):
     hello = graphene.String(default_value="Hi")
-    posts = graphene.List(PostType)
+    posts = graphene.List(TweetType)
 
     def resolve_posts(self, info, **kwargs):
         return "Hello"

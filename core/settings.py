@@ -34,10 +34,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
+    "django_neomodel",
     "graphene_django",
     "graphql_jwt.refresh_token.apps.RefreshTokenConfig",
     "graphql_auth",
-    "accounts",
+    "accounts.apps.AccountsConfig",
     "api",
 ]
 

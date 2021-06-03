@@ -1,5 +1,6 @@
 from neomodel import (
     DateTimeProperty,
+    IntegerProperty,
     RelationshipTo,
     StringProperty,
     StructuredNode,
@@ -16,23 +17,22 @@ class ReTweetRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
-class Post(StructuredNode):
-    uid = UniqueIdProperty()
-    content = StringProperty(required=True)
-    created = DateTimeProperty(default_now=True)
-
-
 class Comment(StructuredNode):
     uid = UniqueIdProperty()
     content = StringProperty(required=True)
     created = DateTimeProperty(default_now=True)
-    comments = RelationshipTo(Post, "COMMENTS")
 
 
-class User(StructuredNode):
+class Tweet(StructuredNode):
     uid = UniqueIdProperty()
-    name = StringProperty(required=True)
-    tweets = RelationshipTo(Post, "TWEETS", model=TweetRel)
-    retweets = RelationshipTo(Post, "RETWEETS", model=ReTweetRel)
-    likes = RelationshipTo(Post, "LIKES")
-    reactions = RelationshipTo(Comment, "REACTION")
+    content = StringProperty(required=True)
+    likes = IntegerProperty(default=0)
+    created = DateTimeProperty(default_now=True)
+    comments = RelationshipTo(Comment, "COMMENTS")
+
+
+class UserNode(StructuredNode):
+    uid = IntegerProperty(unique_index=True, required=True)
+    tweets = RelationshipTo(Tweet, "TWEETS", model=TweetRel)
+    likes = RelationshipTo(Tweet, "LIKES")
+    comments = RelationshipTo(Comment, "COMMENTS")
