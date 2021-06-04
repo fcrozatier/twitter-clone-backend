@@ -23,14 +23,8 @@ from graphene_django.views import GraphQLView
 
 from core import settings
 
-
-def hello(request):
-    return HttpResponse("Hello")
-
-
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("hello/", hello),
     path("api/", include("api.urls"), name="api"),
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ]

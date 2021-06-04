@@ -6,16 +6,6 @@ from django.http import HttpResponse
 from api.models import Tweet, UserNode
 
 
-def create(request):
-    user = UserNode(uid=randint(10, 100)).save()
-    return HttpResponse(f"Created user {user.uid} with id {user.id}")
-
-
-def get(request):
-    user = UserNode.nodes.get(name="bob")
-    return HttpResponse(f"Found user {user.name} with id {user.id}")
-
-
 def tweets(request):
     user = UserNode.nodes.get(name="bob")
     post = Tweet(content="hello i'm bob").save()

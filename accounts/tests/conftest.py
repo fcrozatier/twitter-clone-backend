@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from django.contrib.auth import get_user_model
 from faker import Faker
@@ -8,10 +6,10 @@ from neomodel import db
 
 @pytest.fixture(autouse=True, scope="session")
 def setup_neo_test_db():
-    print("Initializing test session fixture !!!!!")
+    print("Initializing test session fixture !")
     db.begin()
     yield
-    print("Tear down session !!!!!!!!!")
+    print("Tear down session !")
     db.rollback()
 
 
