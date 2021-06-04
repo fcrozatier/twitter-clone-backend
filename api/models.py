@@ -32,7 +32,7 @@ class Tweet(StructuredNode):
 
 
 class UserNode(StructuredNode):
-    uid = IntegerProperty(unique_index=True, required=True)
+    uid = StringProperty(required=True)
     tweets = RelationshipTo(Tweet, "TWEETS", model=TweetRel)
     likes = RelationshipTo(Tweet, "LIKES")
     comments = RelationshipTo(Comment, "COMMENTS")

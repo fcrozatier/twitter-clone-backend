@@ -1,7 +1,7 @@
 import pytest
-from django.contrib.auth import get_user_model
-from faker import Faker
 from graphene_django.utils.testing import graphql_query
+
+from .conftest import fake
 
 mutation_create_user = """
 mutation createUser(
@@ -26,7 +26,7 @@ query {
   users(isActive: true){
     edges {
       node {
-        id
+        uid
         username
         email
         isActive
@@ -38,37 +38,33 @@ query {
 """
 
 
-@pytest.fixture(scope="module")
-def fake():
-    return Faker()
-
-
-@pytest.fixture()
-def create_user(db, fake):
+def valid_user_payload(fake):
     password = fake.password(length=10)
     payload = {
         "email": fake.email(),
         "username": fake.first_name(),
-        "password": password,
+        "password1": password,
+        "password2": password,
     }
-    user = get_user_model().objects.create(**payload)
-    return user
+
+    return payload
 
 
 @pytest.mark.django_db
 class TestAccounts:
     def test_create_user(self, fake):
-        password = fake.password(length=10)
-        payload = {
-            "email": fake.email(),
-            "username": fake.first_name(),
-            "password1": password,
-            "password2": password,
-        }
-        response = graphql_query(mutation_create_user, variables=payload).json()
+        response = graphql_query(mutation_create_user, variables=valid_user_payload(fake)).json()
+        print(response)
+        response = graphql_query(mutation_create_user, variables=valid_user_payload(fake)).json()
+        print(response)
+        response = graphql_query(mutation_create_user, variables=valid_user_payload(fake)).json()
+        print(response)
+        response = graphql_query(mutation_create_user, variables=valid_user_payload(fake)).json()
+        print(response)
         assert response["data"]["register"]["success"] is True
         assert response["data"]["register"]["errors"] == None
 
     def test_list_users(self, create_user):
         response = graphql_query(query_list_users).json()
+        print(response)
         assert len(response["data"]["users"]["edges"]) == 1
