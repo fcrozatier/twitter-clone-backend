@@ -1,4 +1,5 @@
 **/__pycache__
+**/.pytest_cache
 **/.classpath
 **/.dockerignore
 **/.env
@@ -24,3 +25,4 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 README.md
+static
