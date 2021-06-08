@@ -1,7 +1,10 @@
 import pytest
 from faker import Faker
+from graphene_django.utils.testing import graphql_query
 from neomodel import db
 from pytest_factoryboy import register
+
+import tests.queries as queries
 
 from .factories import UserFactory
 
@@ -38,3 +41,12 @@ def valid_user_payload(faker):
         return payload
 
     return make_valid_user_payload
+
+
+@pytest.fixture
+def create_user_node(valid_user_payload):
+    def make_user_node():
+        response = graphql_query(queries.create_user, variables=valid_user_payload()).json()
+        return response["data"]["register"]
+
+    return make_user_node

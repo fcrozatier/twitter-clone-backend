@@ -15,6 +15,7 @@ class Query(
 
 class Mutation(
     accounts.schema.AuthMutation,
+    api.schema.Mutation,
     graphene.ObjectType,
 ):
     pass
