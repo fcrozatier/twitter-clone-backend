@@ -11,25 +11,26 @@ def test_user_str(db, user):
 
 @pytest.mark.django_db
 class TestAccounts:
-    def test_create_user(self, valid_user_payload):
-        response = graphql_query(queries.create_user, variables=valid_user_payload()).json()
+    def test_create_user(self, create_user_node):
+        response = create_user_node()
         print(response)
-        assert response["data"]["register"]["success"] is True
-        assert response["data"]["register"]["errors"] == None
+        assert response["success"] is True
+        assert response["errors"] == None
 
+    # Requires create_user since the list_users query invokes the users field of graphql_auth which makes a request to the *PostGres* auth user model
     def test_list_users(self, create_user, client):
-        response = graphql_query(queries.list_users, client=client).json()
+        response = graphql_query(queries.last_user, client=client).json()
         print(response)
         assert len(response["data"]["users"]["edges"]) == 1
 
-    def test_user_creation_replicates_in_neodb(db, valid_user_payload):
+    def test_user_creation_replicates_in_neodb(self, db, valid_user_payload):
         payload = valid_user_payload()
         email = payload["email"]
         # create a user in the db via graphql to trigger the replication signal
         graphql_query(queries.create_user, variables=payload)
 
         # get the user from postgres to check its uid
-        response = graphql_query(queries.list_users_by_email, variables={"email": email}).json()
+        response = graphql_query(queries.last_user).json()
         uid = response["data"]["users"]["edges"][0]["node"]["uid"]
         print(uid)
 

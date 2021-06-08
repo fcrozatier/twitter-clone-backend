@@ -1,3 +1,4 @@
+# Account queries
 create_user = """
 mutation createUser(
     $email: String!,
@@ -11,14 +12,29 @@ mutation createUser(
     password1: $password1,
     password2: $password2) {
       success
+      token
       errors
+  }
+}
+"""
+
+last_user = """query {
+  users (last: 1){
+    edges {
+      node {
+        id,
+        uid,
+        username,
+        email,
+      }
+    }
   }
 }
 """
 
 list_users = """
 query {
-  users(isActive: true){
+  users {
     edges {
       node {
         uid
@@ -47,3 +63,15 @@ query ($email: String!){
 }
 
 """
+
+# Tweet queries
+create_tweet = """mutation newTweet(
+    $content: String!
+){
+  createTweet(content: $content){
+    tweet {
+      content
+      created
+    }
+  }
+}"""
