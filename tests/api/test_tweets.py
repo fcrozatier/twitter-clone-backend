@@ -1,5 +1,6 @@
 import pytest
 import tests.queries as queries
+from accounts.exceptions import LOGIN_REQUIRED_ERROR_MSG, NOT_VERIFIED_ACCOUNT_ERROR_MSG
 from accounts.models import User
 from graphene_django.utils.testing import graphql_query
 
@@ -10,7 +11,7 @@ class TestTweets:
         variables = {"content": "test tweet"}
         response = graphql_query(queries.create_tweet, variables=variables).json()
         print(response)
-        assert response["errors"][0]["message"] == "You must be logged in"
+        assert response["errors"][0]["message"] == LOGIN_REQUIRED_ERROR_MSG
 
     def test_unverified_user_cannot_tweet(self, create_user_node):
         token = create_user_node()["token"]
@@ -21,7 +22,7 @@ class TestTweets:
             headers={"HTTP_AUTHORIZATION": f"JWT {token}"},
         ).json()
         print(response)
-        assert response["errors"][0]["message"] == "You're account is not verified"
+        assert response["errors"][0]["message"] == NOT_VERIFIED_ACCOUNT_ERROR_MSG
 
     def test_verified_user_can_tweet(self, create_user_node):
         token = create_user_node()["token"]
