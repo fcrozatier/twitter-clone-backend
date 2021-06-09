@@ -1,12 +1,13 @@
+from random import randint
+
 import pytest
-from faker import Faker
 from graphene_django.utils.testing import graphql_query
 from neomodel import db
 from pytest_factoryboy import register
 
 import tests.queries as queries
-
-from .factories import UserFactory
+from api.models import TweetNode
+from tests.factories import UserFactory
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -50,3 +51,13 @@ def create_user_node(valid_user_payload):
         return response["data"]["register"]
 
     return make_user_node
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def create_tweet_node(faker):
+    def make_tweet_node(content=faker.sentence(), likes=randint(0, 100)):
+        tweet = TweetNode(content=content, likes=likes).save()
+        return tweet
+
+    return make_tweet_node

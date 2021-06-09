@@ -75,3 +75,16 @@ create_tweet = """mutation newTweet(
     }
   }
 }"""
+
+like_tweet = """mutation createLike(
+    $tweetUid: String!
+){
+  createLike(tweetUid: $tweetUid){
+    tweet {
+      uid
+      content
+      likes
+      created
+    }
+  }
+}"""

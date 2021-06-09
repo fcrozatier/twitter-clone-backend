@@ -25,7 +25,6 @@ class TestAccounts:
 
     def test_user_creation_replicates_in_neodb(self, db, valid_user_payload):
         payload = valid_user_payload()
-        email = payload["email"]
         # create a user in the db via graphql to trigger the replication signal
         graphql_query(queries.create_user, variables=payload)
 
