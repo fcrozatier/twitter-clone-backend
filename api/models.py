@@ -37,7 +37,7 @@ class TweetNode(StructuredNode):
     content = StringProperty(required=True)
     likes = IntegerProperty(default=0)
     created = DateTimeProperty(default_now=True)
-    comments = RelationshipTo(Comment, "COMMENTS")
+    # comments = RelationshipTo(Comment, "COMMENTS")
 
 
 class UserNode(StructuredNode):

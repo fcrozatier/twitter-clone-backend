@@ -1,9 +1,10 @@
-import factory
+from random import randint
 
-# from django.contrib.auth import get_user_model
+import factory
 from faker import Faker
 
 from accounts.models import User
+from api.models import TweetNode
 
 fake = Faker()
 
