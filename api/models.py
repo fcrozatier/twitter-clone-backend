@@ -9,7 +9,16 @@ from neomodel import (
 )
 
 
+class Likeable:
+    # todo
+    pass
+
+
 class TweetRel(StructuredRel):
+    date = DateTimeProperty(default_now=True)
+
+
+class LikeRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
@@ -23,7 +32,7 @@ class Comment(StructuredNode):
     created = DateTimeProperty(default_now=True)
 
 
-class Tweet(StructuredNode):
+class TweetNode(StructuredNode):
     uid = UniqueIdProperty()
     content = StringProperty(required=True)
     likes = IntegerProperty(default=0)
@@ -33,6 +42,6 @@ class Tweet(StructuredNode):
 
 class UserNode(StructuredNode):
     uid = StringProperty(required=True)
-    tweets = RelationshipTo(Tweet, "TWEETS", model=TweetRel)
-    likes = RelationshipTo(Tweet, "LIKES")
+    tweets = RelationshipTo(TweetNode, "TWEETS", model=TweetRel)
+    likes = RelationshipTo(TweetNode, "LIKES", model=LikeRel)
     comments = RelationshipTo(Comment, "COMMENTS")

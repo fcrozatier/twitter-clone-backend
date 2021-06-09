@@ -2,12 +2,12 @@ from datetime import datetime
 
 from django.http import HttpResponse
 
-from api.models import Tweet, UserNode
+from api.models import TweetNode, UserNode
 
 
 def tweets(request):
     user = UserNode.nodes.get(name="bob")
-    post = Tweet(content="hello i'm bob").save()
+    post = TweetNode(content="hello i'm bob").save()
     user.tweets.connect(post)
     return HttpResponse(f"User {user.name} wrote {post.content}")
 
