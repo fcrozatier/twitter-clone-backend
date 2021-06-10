@@ -88,3 +88,22 @@ like_tweet = """mutation createLike(
     }
   }
 }"""
+
+create_comment = """mutation createComment(
+    $content: String!,
+    $tweetUid: String!
+) {
+  createComment(content: $content, tweetUid: $tweetUid){
+    comment {
+      uid
+      content
+      created
+      tweet {
+        uid
+        content
+        likes
+        comments
+      }
+    }
+  }
+}"""
