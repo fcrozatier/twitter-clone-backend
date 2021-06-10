@@ -71,6 +71,8 @@ create_tweet = """mutation newTweet(
   createTweet(content: $content){
     tweet {
       content
+      likes
+      comments
       created
     }
   }
