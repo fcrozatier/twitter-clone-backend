@@ -9,12 +9,19 @@ from accounts.models import User
 admin.site.register(UserStatus)
 
 
+class UserStatusInline(admin.TabularInline):
+    model = UserStatus
+
+
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     list_display = ("username", "email", "verified", "uid", "is_staff")
     list_filter = ("is_staff", "is_active", "status__verified")
-    search_fields = ("username", "email")
+    search_fields = ("username", "email", "uid")
     ordering = ("username",)
+    inlines = [
+        UserStatusInline,
+    ]
     fieldsets = (
         (
             None,
