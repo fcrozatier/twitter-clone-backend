@@ -26,22 +26,27 @@ class ReTweetRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
-class Comment(StructuredNode):
-    uid = UniqueIdProperty()
-    content = StringProperty(required=True)
-    created = DateTimeProperty(default_now=True)
+class CommentRel(StructuredRel):
+    date = DateTimeProperty(default_now=True)
 
 
 class TweetNode(StructuredNode):
     uid = UniqueIdProperty()
     content = StringProperty(required=True)
     likes = IntegerProperty(default=0)
+    comments = IntegerProperty(default=0)
     created = DateTimeProperty(default_now=True)
-    # comments = RelationshipTo(Comment, "COMMENTS")
+
+
+class CommentNode(StructuredNode):
+    uid = UniqueIdProperty()
+    content = StringProperty(required=True)
+    created = DateTimeProperty(default_now=True)
+    tweet = RelationshipTo(TweetNode, "ABOUT")
 
 
 class UserNode(StructuredNode):
     uid = StringProperty(required=True)
     tweets = RelationshipTo(TweetNode, "TWEETS", model=TweetRel)
     likes = RelationshipTo(TweetNode, "LIKES", model=LikeRel)
-    comments = RelationshipTo(Comment, "COMMENTS")
+    comments = RelationshipTo(CommentNode, "COMMENTS", model=CommentRel)
