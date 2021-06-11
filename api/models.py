@@ -35,7 +35,16 @@ class TweetNode(StructuredNode):
     content = StringProperty(required=True)
     likes = IntegerProperty(default=0)
     comments = IntegerProperty(default=0)
+    retweets = IntegerProperty(default=0)
     created = DateTimeProperty(default_now=True)
+
+
+class ReTweetNode(StructuredNode):
+    uid = UniqueIdProperty()
+    likes = IntegerProperty(default=0)
+    comments = IntegerProperty(default=0)
+    created = DateTimeProperty(default_now=True)
+    tweet = RelationshipTo(TweetNode, "ORIGINAL")
 
 
 class CommentNode(StructuredNode):
@@ -48,5 +57,6 @@ class CommentNode(StructuredNode):
 class UserNode(StructuredNode):
     uid = StringProperty(required=True)
     tweets = RelationshipTo(TweetNode, "TWEETS", model=TweetRel)
+    retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=ReTweetRel)
     likes = RelationshipTo(TweetNode, "LIKES", model=LikeRel)
     comments = RelationshipTo(CommentNode, "COMMENTS", model=CommentRel)

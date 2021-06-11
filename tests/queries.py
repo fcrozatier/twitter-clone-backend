@@ -73,7 +73,28 @@ create_tweet = """mutation newTweet(
       content
       likes
       comments
+      retweets
       created
+    }
+  }
+}"""
+
+create_retweet = """mutation createRetweet(
+    $tweetUid: String!
+) {
+  createRetweet(tweetUid: $tweetUid){
+    retweet {
+      uid
+      likes
+      comments
+      created
+      tweet {
+        uid
+        content
+        likes
+        comments
+        retweets
+      }
     }
   }
 }"""

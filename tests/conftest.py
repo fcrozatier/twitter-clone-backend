@@ -66,8 +66,18 @@ def create_user_node(valid_user_payload):
 @pytest.fixture
 @pytest.mark.django_db
 def create_tweet_node(faker):
-    def make_tweet_node(content=faker.sentence(), likes=randint(0, 100), comments=randint(0, 100)):
-        tweet = TweetNode(content=content, likes=likes, comments=comments).save()
+    def make_tweet_node(
+        content=faker.sentence(),
+        likes=randint(0, 100),
+        retweets=randint(0, 100),
+        comments=randint(0, 100),
+    ):
+        tweet = TweetNode(
+            content=content,
+            likes=likes,
+            retweets=retweets,
+            comments=comments,
+        ).save()
         return tweet
 
     return make_tweet_node
