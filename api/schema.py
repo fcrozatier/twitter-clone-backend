@@ -6,6 +6,28 @@ from api.errors import COMMENT_EMPTY_ERROR, TWEET_EMPTY_ERROR, TWEET_NOT_FOUND_E
 from api.models import CommentNode, TweetNode, UserNode
 
 
+def add_base_resolvers(cls):
+    resolvers = {}
+    attrs = cls.__dict__.keys()
+    for attr in attrs:
+        resolver_name = f"resolve_{attr}"
+        # Make a resolver for every non private attribute which doesn't have a custom resolver
+        if not attr.startswith("_") and not attr.startswith("resolve") and resolver_name not in attrs:
+
+            def make_resolver(attr):
+                def resolver(parent, info):
+                    return getattr(parent, attr)
+
+                return resolver
+
+            resolvers[resolver_name] = make_resolver(attr)
+
+    for resolver_name, resolver in resolvers.items():
+        setattr(cls, resolver_name, staticmethod(resolver))
+    return cls
+
+
+@add_base_resolvers
 class TweetType(graphene.ObjectType):
     uid = graphene.String(required=True)
     content = graphene.String(required=True)
@@ -13,30 +35,31 @@ class TweetType(graphene.ObjectType):
     comments = graphene.Int()
     created = graphene.DateTime()
 
-    def resolve_uid(parent, info):
-        return parent.uid
+    # def resolve_uid(parent, info):
+    #     return parent.uid
 
-    def resolve_content(parent, info):
-        return parent.content
+    # def resolve_content(parent, info):
+    #     return parent.content
 
-    def resolve_likes(parent, info):
-        return parent.likes
+    # def resolve_likes(parent, info):
+    #     return parent.likes
 
-    def resolve_comments(parent, info):
-        return parent.comments
+    # def resolve_comments(parent, info):
+    #     return parent.comments
 
 
+@add_base_resolvers
 class CommentType(ObjectType):
     uid = graphene.String(required=True)
     content = graphene.String(required=True)
     created = graphene.DateTime()
     tweet = graphene.Field(TweetType)
 
-    def resolve_uid(parent, info):
-        return parent.uid
+    # def resolve_uid(parent, info):
+    #     return parent.uid
 
-    def resolve_content(parent, info):
-        return parent.content
+    # def resolve_content(parent, info):
+    #     return parent.content
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
