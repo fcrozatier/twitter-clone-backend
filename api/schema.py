@@ -1,28 +1,49 @@
 import graphene
 from accounts.decorators import login_required, user_verified
 from graphene.types.objecttype import ObjectType
+from neo4j import graph
 
 from api.decorators import add_base_resolvers
-from api.errors import COMMENT_EMPTY_ERROR, TWEET_EMPTY_ERROR, TWEET_NOT_FOUND_ERROR
+from api.errors import (
+    COMMENT_EMPTY_ERROR,
+    GENERIC_ERROR,
+    TWEET_EMPTY_ERROR,
+    TWEET_NOT_FOUND_ERROR,
+)
 from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
+
+
+class Likeable(graphene.Interface):
+    uid = graphene.String(required=True)
+    likes = graphene.Int()
+    created = graphene.DateTime()
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        if isinstance(instance, TweetNode):
+            return TweetType
+        elif isinstance(instance, ReTweetNode):
+            return ReTweetType
+        else:
+            return CommentType
 
 
 @add_base_resolvers
 class TweetType(graphene.ObjectType):
-    uid = graphene.String(required=True)
+    class Meta:
+        interfaces = (Likeable,)
+
     content = graphene.String(required=True)
-    likes = graphene.Int()
     comments = graphene.Int()
     retweets = graphene.Int()
-    created = graphene.DateTime()
 
 
 @add_base_resolvers
 class ReTweetType(ObjectType):
-    uid = graphene.String(required=True)
-    likes = graphene.Int()
+    class Meta:
+        interfaces = (Likeable,)
+
     comments = graphene.Int()
-    created = graphene.DateTime()
     tweet = graphene.Field(TweetType)
 
     def resolve_tweet(parent, info):
@@ -31,13 +52,50 @@ class ReTweetType(ObjectType):
 
 @add_base_resolvers
 class CommentType(ObjectType):
-    uid = graphene.String(required=True)
+    class Meta:
+        interfaces = (Likeable,)
+
     content = graphene.String(required=True)
-    created = graphene.DateTime()
     tweet = graphene.Field(TweetType)
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
+
+
+def get_likeable_node(uid, type):
+    if type == "TweetType":
+        likeable = TweetNode.nodes.get_or_none(uid=uid)
+    elif type == "ReTweetType":
+        likeable = ReTweetNode.nodes.get_or_none(uid=uid)
+    else:
+        likeable = CommentNode.nodes.get_or_none(uid=uid)
+
+    if not likeable:
+        raise Exception(GENERIC_ERROR)
+
+    return likeable
+
+
+# TODO : can only like once
+class CreateLike(graphene.Mutation):
+    class Arguments:
+        uid = graphene.String(required=True)
+        type = graphene.String(required=True)
+
+    likeable = graphene.Field(Likeable)
+
+    @login_required
+    def mutate(parent, info, uid, type):
+        likeable = get_likeable_node(uid, type)
+        print(f"got likeable {likeable}")
+        print(f"type {type}")
+        likeable.likes += 1
+        likeable.save()
+        user_uid = info.context.user.uid
+        user = UserNode.nodes.get(uid=user_uid)
+        user.likes.connect(likeable)
+        print(f"user {user}")
+        return CreateLike(likeable=likeable)
 
 
 class CreateTweet(graphene.Mutation):
@@ -81,26 +139,6 @@ class CreateReTweet(graphene.Mutation):
         user_node.retweets.connect(retweet_node)
 
         return CreateReTweet(retweet=retweet_node)
-
-
-class CreateLike(graphene.Mutation):
-    class Arguments:
-        tweet_uid = graphene.String(required=True)
-
-    tweet = graphene.Field(TweetType)
-
-    @login_required
-    def mutate(parent, info, tweet_uid):
-        tweet = TweetNode.nodes.get_or_none(uid=tweet_uid)
-        if not tweet:
-            raise Exception(TWEET_NOT_FOUND_ERROR)
-
-        tweet.likes += 1
-        tweet.save()
-        user_uid = info.context.user.uid
-        user = UserNode.nodes.get(uid=user_uid)
-        user.likes.connect(tweet)
-        return CreateLike(tweet=tweet)
 
 
 class CreateComment(graphene.Mutation):
