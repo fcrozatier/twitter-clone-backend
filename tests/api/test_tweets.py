@@ -47,6 +47,7 @@ class TestTweets:
             assert response["data"]["createTweet"]["tweet"]["content"] == tweet_content
             assert response["data"]["createTweet"]["tweet"]["likes"] == 0
             assert response["data"]["createTweet"]["tweet"]["comments"] == 0
+            assert response["data"]["createTweet"]["tweet"]["retweets"] == 0
         else:
             assert response["errors"][0]["message"] == TWEET_EMPTY_ERROR
 
@@ -149,6 +150,37 @@ class TestTweets:
             queries.create_comment,
             variables=comment_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
+        ).json()
+        print(response)
+        assert "errors" in response
+        assert response["errors"][0]["message"] == TWEET_NOT_FOUND_ERROR
+
+    def test_auth_user_can_retweet(self, create_user_node, create_tweet_node):
+        user_token = create_user_node()["token"]
+        tweet_node = create_tweet_node()
+        retweet_variables = {"tweetUid": tweet_node.uid}
+        response = graphql_query(
+            queries.create_retweet,
+            variables=retweet_variables,
+            headers={
+                "HTTP_AUTHORIZATION": f"JWT {user_token}",
+            },
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert response["data"]["createRetweet"]["retweet"]["tweet"]["uid"] == tweet_node.uid
+        assert response["data"]["createRetweet"]["retweet"]["tweet"]["retweets"] == tweet_node.retweets + 1
+
+    def test_retweet_ref_tweet_must_exist(self, create_user_node):
+        user_token = create_user_node()["token"]
+        invalid_tweet_uid = "1234"
+        retweet_variables = {"tweetUid": invalid_tweet_uid}
+        response = graphql_query(
+            queries.create_retweet,
+            variables=retweet_variables,
+            headers={
+                "HTTP_AUTHORIZATION": f"JWT {user_token}",
+            },
         ).json()
         print(response)
         assert "errors" in response
