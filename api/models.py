@@ -9,9 +9,10 @@ from neomodel import (
 )
 
 
-class Likeable:
-    # todo
-    pass
+class LikeableNode(StructuredNode):
+    uid = UniqueIdProperty()
+    likes = IntegerProperty(default=0)
+    created = DateTimeProperty(default_now=True)
 
 
 class TweetRel(StructuredRel):
@@ -30,27 +31,19 @@ class CommentRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
-class TweetNode(StructuredNode):
-    uid = UniqueIdProperty()
+class TweetNode(LikeableNode):
     content = StringProperty(required=True)
-    likes = IntegerProperty(default=0)
     comments = IntegerProperty(default=0)
     retweets = IntegerProperty(default=0)
-    created = DateTimeProperty(default_now=True)
 
 
-class ReTweetNode(StructuredNode):
-    uid = UniqueIdProperty()
-    likes = IntegerProperty(default=0)
+class ReTweetNode(LikeableNode):
     comments = IntegerProperty(default=0)
-    created = DateTimeProperty(default_now=True)
     tweet = RelationshipTo(TweetNode, "ORIGINAL")
 
 
-class CommentNode(StructuredNode):
-    uid = UniqueIdProperty()
+class CommentNode(LikeableNode):
     content = StringProperty(required=True)
-    created = DateTimeProperty(default_now=True)
     tweet = RelationshipTo(TweetNode, "ABOUT")
 
 
@@ -58,5 +51,5 @@ class UserNode(StructuredNode):
     uid = StringProperty(required=True)
     tweets = RelationshipTo(TweetNode, "TWEETS", model=TweetRel)
     retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=ReTweetRel)
-    likes = RelationshipTo(TweetNode, "LIKES", model=LikeRel)
+    likes = RelationshipTo(LikeableNode, "LIKES", model=LikeRel)
     comments = RelationshipTo(CommentNode, "COMMENTS", model=CommentRel)
