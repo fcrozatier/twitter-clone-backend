@@ -2,29 +2,9 @@ import graphene
 from accounts.decorators import login_required, user_verified
 from graphene.types.objecttype import ObjectType
 
+from api.decorators import add_base_resolvers
 from api.errors import COMMENT_EMPTY_ERROR, TWEET_EMPTY_ERROR, TWEET_NOT_FOUND_ERROR
-from api.models import CommentNode, TweetNode, UserNode
-
-
-def add_base_resolvers(cls):
-    resolvers = {}
-    attrs = cls.__dict__.keys()
-    for attr in attrs:
-        resolver_name = f"resolve_{attr}"
-        # Make a resolver for every non private attribute which doesn't have a custom resolver
-        if not attr.startswith("_") and not attr.startswith("resolve") and resolver_name not in attrs:
-
-            def make_resolver(attr):
-                def resolver(parent, info):
-                    return getattr(parent, attr)
-
-                return resolver
-
-            resolvers[resolver_name] = make_resolver(attr)
-
-    for resolver_name, resolver in resolvers.items():
-        setattr(cls, resolver_name, staticmethod(resolver))
-    return cls
+from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
 
 
 @add_base_resolvers
@@ -33,19 +13,20 @@ class TweetType(graphene.ObjectType):
     content = graphene.String(required=True)
     likes = graphene.Int()
     comments = graphene.Int()
+    retweets = graphene.Int()
     created = graphene.DateTime()
 
-    # def resolve_uid(parent, info):
-    #     return parent.uid
 
-    # def resolve_content(parent, info):
-    #     return parent.content
+@add_base_resolvers
+class ReTweetType(ObjectType):
+    uid = graphene.String(required=True)
+    likes = graphene.Int()
+    comments = graphene.Int()
+    created = graphene.DateTime()
+    tweet = graphene.Field(TweetType)
 
-    # def resolve_likes(parent, info):
-    #     return parent.likes
-
-    # def resolve_comments(parent, info):
-    #     return parent.comments
+    def resolve_tweet(parent, info):
+        return parent.tweet.single()
 
 
 @add_base_resolvers
@@ -54,12 +35,6 @@ class CommentType(ObjectType):
     content = graphene.String(required=True)
     created = graphene.DateTime()
     tweet = graphene.Field(TweetType)
-
-    # def resolve_uid(parent, info):
-    #     return parent.uid
-
-    # def resolve_content(parent, info):
-    #     return parent.content
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
@@ -81,6 +56,31 @@ class CreateTweet(graphene.Mutation):
         user = UserNode.nodes.get(uid=user_uid)
         user.tweets.connect(tweet)
         return CreateTweet(tweet=tweet)
+
+
+class CreateReTweet(graphene.Mutation):
+    class Arguments:
+        tweet_uid = graphene.String(required=True)
+
+    retweet = graphene.Field(ReTweetType)
+
+    @login_required
+    def mutate(parent, info, tweet_uid):
+        tweet_node = TweetNode.nodes.get_or_none(uid=tweet_uid)
+        if not tweet_node:
+            raise Exception(TWEET_NOT_FOUND_ERROR)
+
+        tweet_node.retweets += 1
+        tweet_node.save()
+
+        retweet_node = ReTweetNode().save()
+        retweet_node.tweet.connect(tweet_node)
+
+        user_uid = info.context.user.uid
+        user_node = UserNode.nodes.get(uid=user_uid)
+        user_node.retweets.connect(retweet_node)
+
+        return CreateReTweet(retweet=retweet_node)
 
 
 class CreateLike(graphene.Mutation):
@@ -142,5 +142,6 @@ class Query(graphene.ObjectType):
 
 class Mutation(ObjectType):
     create_tweet = CreateTweet.Field()
+    create_retweet = CreateReTweet.Field()
     create_like = CreateLike.Field()
     create_comment = CreateComment.Field()
