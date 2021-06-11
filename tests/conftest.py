@@ -7,7 +7,7 @@ from pytest_factoryboy import register
 
 import tests.queries as queries
 from accounts.models import User
-from api.models import TweetNode
+from api.models import CommentNode, ReTweetNode, TweetNode
 from tests.factories import UserFactory
 
 
@@ -81,3 +81,46 @@ def create_tweet_node(faker):
         return tweet
 
     return make_tweet_node
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def create_likeable_node(faker):
+    def choose_maker(
+        type,
+        likes=randint(0, 100),
+        content=faker.sentence(),
+        retweets=randint(0, 100),
+        comments=randint(0, 100),
+    ):
+        def make_tweet_node():
+            tweet = TweetNode(
+                likes=likes,
+                content=content,
+                comments=comments,
+                retweets=retweets,
+            ).save()
+            return tweet
+
+        def make_retweet_node():
+            retweet = ReTweetNode(
+                likes=likes,
+                comments=comments,
+            ).save()
+            return retweet
+
+        def make_comment_node():
+            comment = CommentNode(
+                likes=likes,
+                content=content,
+            ).save()
+            return comment
+
+        if type == "TweetType":
+            return make_tweet_node()
+        elif type == "ReTweetType":
+            return make_retweet_node()
+        else:
+            return make_comment_node()
+
+    return choose_maker

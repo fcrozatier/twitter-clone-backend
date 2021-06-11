@@ -3,7 +3,12 @@ import tests.queries as queries
 from accounts.exceptions import LOGIN_REQUIRED_ERROR_MSG, NOT_VERIFIED_ACCOUNT_ERROR_MSG
 from graphene_django.utils.testing import graphql_query
 
-from api.errors import COMMENT_EMPTY_ERROR, TWEET_EMPTY_ERROR, TWEET_NOT_FOUND_ERROR
+from api.errors import (
+    COMMENT_EMPTY_ERROR,
+    GENERIC_ERROR,
+    TWEET_EMPTY_ERROR,
+    TWEET_NOT_FOUND_ERROR,
+)
 
 
 @pytest.mark.django_db
@@ -53,40 +58,51 @@ class TestTweets:
 
     def test_unauthenticated_user_cannot_like(self, create_tweet_node):
         tweet = create_tweet_node()
-        variables = {"tweetUid": tweet.uid}
+        variables = {"uid": tweet.uid, "type": "TweetType"}
         response = graphql_query(
-            queries.like_tweet,
+            queries.create_like,
             variables=variables,
         ).json()
         print(response)
         assert response["errors"][0]["message"] == LOGIN_REQUIRED_ERROR_MSG
 
-    def test_authenticated_user_can_like(self, create_user_node, create_tweet_node):
+    @pytest.mark.parametrize(
+        ["type"],
+        [
+            pytest.param("TweetType", id="TweetType"),
+            pytest.param("ReTweetType", id="ReTweetType"),
+            pytest.param("CommentType", id="CommentType"),
+        ],
+    )
+    def test_authenticated_user_can_like(self, type, create_user_node, create_likeable_node):
         nb_likes = 99
-        tweet = create_tweet_node(likes=nb_likes)
-        query_variables = {"tweetUid": tweet.uid}
+        likeable = create_likeable_node(type, likes=nb_likes)
+        print(f"likeable {likeable}")
+        query_variables = {"uid": likeable.uid, "type": type}
+        print(f"query vars {query_variables}")
         user_token = create_user_node()["token"]
         response = graphql_query(
-            queries.like_tweet,
+            queries.create_like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
-        print(response)
+        print(f"response {response}")
         assert "errors" not in response
-        assert response["data"]["createLike"]["tweet"]["uid"] == tweet.uid
-        assert response["data"]["createLike"]["tweet"]["likes"] == nb_likes + 1
+        assert response["data"]["createLike"]["likeable"]["uid"] == likeable.uid
+        assert response["data"]["createLike"]["likeable"]["likes"] == nb_likes + 1
+        assert response["data"]["createLike"]["likeable"]["__typename"] == type
 
     def test_cannot_like_nonexisting_tweet(self, create_user_node):
         not_proper_tweet_uid = 51
-        query_variables = {"tweetUid": not_proper_tweet_uid}
+        query_variables = {"uid": not_proper_tweet_uid, "type": "TweetType"}
         user_token = create_user_node()["token"]
         response = graphql_query(
-            queries.like_tweet,
+            queries.create_like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         assert "errors" in response
-        assert response["errors"][0]["message"] == TWEET_NOT_FOUND_ERROR
+        assert response["errors"][0]["message"] == GENERIC_ERROR
 
     def test_unauthenticated_user_cannot_comment(self, faker, create_tweet_node):
         tweet = create_tweet_node()
@@ -155,7 +171,7 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == TWEET_NOT_FOUND_ERROR
 
-    def test_auth_user_can_retweet(self, create_user_node, create_tweet_node):
+    def test_authenticated_user_can_retweet(self, create_user_node, create_tweet_node):
         user_token = create_user_node()["token"]
         tweet_node = create_tweet_node()
         retweet_variables = {"tweetUid": tweet_node.uid}
@@ -171,7 +187,7 @@ class TestTweets:
         assert response["data"]["createRetweet"]["retweet"]["tweet"]["uid"] == tweet_node.uid
         assert response["data"]["createRetweet"]["retweet"]["tweet"]["retweets"] == tweet_node.retweets + 1
 
-    def test_retweet_ref_tweet_must_exist(self, create_user_node):
+    def test_retweet_reference_must_exist(self, create_user_node):
         user_token = create_user_node()["token"]
         invalid_tweet_uid = "1234"
         retweet_variables = {"tweetUid": invalid_tweet_uid}

@@ -99,15 +99,24 @@ create_retweet = """mutation createRetweet(
   }
 }"""
 
-like_tweet = """mutation createLike(
-    $tweetUid: String!
-){
-  createLike(tweetUid: $tweetUid){
-    tweet {
-      uid
-      content
-      likes
-      created
+create_like = """mutation createLike(
+    $uid: String!,
+    $type: String!,
+) {
+  createLike(uid: $uid, type: $type){
+    likeable {
+        __typename
+        uid
+        likes
+      ... on TweetType{
+        content
+      }
+      ... on ReTweetType {
+        comments
+      }
+      ... on CommentType {
+        content
+      }
     }
   }
 }"""
