@@ -4,6 +4,7 @@ from accounts.exceptions import LOGIN_REQUIRED_ERROR_MSG, NOT_VERIFIED_ACCOUNT_E
 from graphene_django.utils.testing import graphql_query
 
 from api.errors import (
+    ALREADY_LIKED_ERROR,
     COMMENT_EMPTY_ERROR,
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
@@ -115,6 +116,31 @@ class TestTweets:
         ).json()
         assert "errors" in response
         assert response["errors"][0]["message"] == NOT_LIKEABLE
+
+    def test_cannot_like_twice(self, create_user_node, create_likeable_node):
+        """
+        A user can make multiple tweets, but not on same likeable
+        A likeable can be liked multiple times, but not by the same user
+        """
+        type = "TweetType"
+        tweet = create_likeable_node(type)
+        query_variables = {"uid": tweet.uid, "type": type}
+        user_token = create_user_node()["token"]
+        response1 = graphql_query(
+            queries.create_like,
+            variables=query_variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
+        ).json()
+        response2 = graphql_query(
+            queries.create_like,
+            variables=query_variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
+        ).json()
+        print(response1)
+        assert "errors" not in response1
+        print(response2)
+        assert "errors" in response2
+        assert response2["errors"][0]["message"] == ALREADY_LIKED_ERROR
 
     def test_unauthenticated_user_cannot_comment(self, faker, create_tweet_node):
         tweet = create_tweet_node()
