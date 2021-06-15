@@ -1,0 +1,5 @@
+LIKEABLES = [
+    "Tweet",
+    "ReTweet",
+    "Comment",
+]
