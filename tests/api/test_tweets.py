@@ -5,7 +5,7 @@ from graphene_django.utils.testing import graphql_query
 
 from api.errors import (
     COMMENT_EMPTY_ERROR,
-    GENERIC_ERROR,
+    NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
 )
@@ -102,7 +102,19 @@ class TestTweets:
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         assert "errors" in response
-        assert response["errors"][0]["message"] == GENERIC_ERROR
+        assert response["errors"][0]["message"] == NOT_LIKEABLE
+
+    def test_cannot_like_badtypes(self, create_user_node, create_tweet_node):
+        tweet = create_tweet_node()
+        query_variables = {"uid": tweet.uid, "type": "BadType"}
+        user_token = create_user_node()["token"]
+        response = graphql_query(
+            queries.create_like,
+            variables=query_variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
+        ).json()
+        assert "errors" in response
+        assert response["errors"][0]["message"] == NOT_LIKEABLE
 
     def test_unauthenticated_user_cannot_comment(self, faker, create_tweet_node):
         tweet = create_tweet_node()
