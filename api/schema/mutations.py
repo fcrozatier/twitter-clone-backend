@@ -1,6 +1,7 @@
 import graphene
 from accounts.decorators import login_required, user_verified
 from api.errors import (
+    ALREADY_LIKED_ERROR,
     COMMENT_EMPTY_ERROR,
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
@@ -12,7 +13,6 @@ from api.schema.types import CommentType, LikeableType, ReTweetType, TweetType
 from graphene.types.objecttype import ObjectType
 
 
-# TODO : can only like once
 class CreateLike(graphene.Mutation):
     class Arguments:
         uid = graphene.String(required=True)
@@ -23,16 +23,17 @@ class CreateLike(graphene.Mutation):
     @login_required
     def mutate(parent, info, uid, type):
         likeable = LikeableFactory().get_or_none(uid, type)
-        print(f"got likeable {likeable}")
-        print(f"type {type}")
-        if likeable:
-            likeable.likes += 1
-            likeable.save()
-        else:
+        if not likeable:
             raise Exception(NOT_LIKEABLE)
+
         user_uid = info.context.user.uid
         user = UserNode.nodes.get(uid=user_uid)
+        if user.likes.is_connected(likeable):
+            raise Exception(ALREADY_LIKED_ERROR)
+
         user.likes.connect(likeable)
+        likeable.likes += 1
+        likeable.save()
         return CreateLike(likeable=likeable)
 
 

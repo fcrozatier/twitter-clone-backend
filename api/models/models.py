@@ -7,12 +7,7 @@ from neomodel import (
     StructuredRel,
     UniqueIdProperty,
 )
-
-
-class LikeableNode(StructuredNode):
-    uid = UniqueIdProperty()
-    likes = IntegerProperty(default=0)
-    created = DateTimeProperty(default_now=True)
+from neomodel.relationship_manager import RelationshipFrom
 
 
 class TweetRel(StructuredRel):
@@ -29,6 +24,13 @@ class ReTweetRel(StructuredRel):
 
 class CommentRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
+
+
+class LikeableNode(StructuredNode):
+    uid = UniqueIdProperty()
+    likes = IntegerProperty(default=0)
+    created = DateTimeProperty(default_now=True)
+    user = RelationshipFrom("UserNode", "LIKES", model=LikeRel)
 
 
 class TweetNode(LikeableNode):
