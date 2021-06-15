@@ -1,7 +1,5 @@
 import graphene
-from api.decorators import add_base_resolvers
-from api.errors import NOT_LIKEABLE
-from api.models import LikeableNode
+from api.schema.decorators import add_base_resolvers
 from graphene.types.objecttype import ObjectType
 
 
