@@ -85,8 +85,9 @@ def create_tweet_node(faker):
 
 @pytest.fixture
 @pytest.mark.django_db
-def create_likeable_node(faker):
+def create_node(faker):
     """
+    Creates a node of a given type
     params:
         type: String The type of likeable (TweetType, CommentType, ReTweetType)
     """

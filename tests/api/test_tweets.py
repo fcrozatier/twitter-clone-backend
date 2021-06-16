@@ -1,11 +1,13 @@
 import pytest
 import tests.queries as queries
+from _pytest.mark import param
 from accounts.exceptions import LOGIN_REQUIRED_ERROR_MSG, NOT_VERIFIED_ACCOUNT_ERROR_MSG
 from graphene_django.utils.testing import graphql_query
 
 from api.errors import (
     ALREADY_LIKED_ERROR,
     COMMENT_EMPTY_ERROR,
+    NOT_COMMENTABLE,
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
@@ -75,9 +77,9 @@ class TestTweets:
             pytest.param("CommentType", id="CommentType"),
         ],
     )
-    def test_authenticated_user_can_like(self, type, create_user_node, create_likeable_node):
+    def test_authenticated_user_can_like(self, type, create_user_node, create_node):
         nb_likes = 99
-        likeable = create_likeable_node(type, likes=nb_likes)
+        likeable = create_node(type, likes=nb_likes)
         print(f"likeable {likeable}")
         query_variables = {"uid": likeable.uid, "type": type}
         print(f"query vars {query_variables}")
@@ -117,13 +119,13 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == NOT_LIKEABLE
 
-    def test_cannot_like_twice(self, create_user_node, create_likeable_node):
+    def test_cannot_like_twice(self, create_user_node, create_node):
         """
         A user can make multiple tweets, but not on same likeable
         A likeable can be liked multiple times, but not by the same user
         """
         type = "TweetType"
-        tweet = create_likeable_node(type)
+        tweet = create_node(type)
         query_variables = {"uid": tweet.uid, "type": type}
         user_token = create_user_node()["token"]
         response1 = graphql_query(
@@ -145,8 +147,9 @@ class TestTweets:
     def test_unauthenticated_user_cannot_comment(self, faker, create_tweet_node):
         tweet = create_tweet_node()
         content = faker.sentence()
-        comment_variables = {"content": content, "tweetUid": tweet.uid}
+        comment_variables = {"uid": tweet.uid, "type": "TweetType", "content": content}
         response = graphql_query(queries.create_comment, variables=comment_variables).json()
+        print(response)
         assert "errors" in response
         assert response["errors"][0]["message"] == LOGIN_REQUIRED_ERROR_MSG
 
@@ -154,7 +157,7 @@ class TestTweets:
         user_token = create_user_node()["token"]
         tweet = create_tweet_node()
         content = faker.sentence()
-        comment_variables = {"content": content, "tweetUid": tweet.uid}
+        comment_variables = {"uid": tweet.uid, "type": "TweetType", "content": content}
         response = graphql_query(
             queries.create_comment,
             variables=comment_variables,
@@ -163,12 +166,19 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == NOT_VERIFIED_ACCOUNT_ERROR_MSG
 
-    def test_verified_user_can_comment(self, faker, create_user_node, create_tweet_node):
+    @pytest.mark.parametrize(
+        "type",
+        [
+            pytest.param("TweetType", id="tweets"),
+            pytest.param("ReTweetType", id="retweets"),
+        ],
+    )
+    def test_verified_user_can_comment(self, faker, create_user_node, create_node, type):
         user_token = create_user_node(verified=True)["token"]
         nb_comments = 19
-        tweet = create_tweet_node(comments=nb_comments)
+        commentable = create_node(type, comments=nb_comments)
         content = faker.sentence()
-        comment_variables = {"content": content, "tweetUid": tweet.uid}
+        comment_variables = {"uid": commentable.uid, "type": type, "content": content}
         response = graphql_query(
             queries.create_comment,
             variables=comment_variables,
@@ -176,16 +186,15 @@ class TestTweets:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["createComment"]["comment"]["content"] == content
-        assert response["data"]["createComment"]["comment"]["content"] == content
-        assert response["data"]["createComment"]["comment"]["tweet"]["uid"] == tweet.uid
-        assert response["data"]["createComment"]["comment"]["tweet"]["comments"] == nb_comments + 1
+        assert response["data"]["createComment"]["commentable"]["uid"] == commentable.uid
+        assert response["data"]["createComment"]["commentable"]["commentsList"][0]["content"] == content
+        assert response["data"]["createComment"]["commentable"]["comments"] == nb_comments + 1
 
     def test_comment_cannot_be_empty(self, create_user_node, create_tweet_node):
         user_token = create_user_node(verified=True)["token"]
         tweet = create_tweet_node()
         content = ""
-        comment_variables = {"content": content, "tweetUid": tweet.uid}
+        comment_variables = {"content": content, "uid": tweet.uid, "type": "TweetType"}
         response = graphql_query(
             queries.create_comment,
             variables=comment_variables,
@@ -195,11 +204,11 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == COMMENT_EMPTY_ERROR
 
-    def test_comment_must_reference_tweet(self, faker, create_user_node):
+    def test_comment_must_reference_commentable(self, faker, create_user_node):
         user_token = create_user_node(verified=True)["token"]
         invalid_tweet_uid = "123"
         content = faker.sentence()
-        comment_variables = {"content": content, "tweetUid": invalid_tweet_uid}
+        comment_variables = {"content": content, "uid": invalid_tweet_uid, "type": "TweetType"}
         response = graphql_query(
             queries.create_comment,
             variables=comment_variables,
@@ -207,7 +216,7 @@ class TestTweets:
         ).json()
         print(response)
         assert "errors" in response
-        assert response["errors"][0]["message"] == TWEET_NOT_FOUND_ERROR
+        assert response["errors"][0]["message"] == NOT_COMMENTABLE
 
     def test_authenticated_user_can_retweet(self, create_user_node, create_tweet_node):
         user_token = create_user_node()["token"]
