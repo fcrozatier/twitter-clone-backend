@@ -1,5 +1,6 @@
 import pytest
 import tests.queries as queries
+from api.errors import USER_ALREADY_FOLLOWED_ERROR, USER_NOT_FOUND_ERROR
 from api.models import UserNode
 from graphene_django.utils.testing import graphql_query
 
@@ -12,10 +13,9 @@ def test_user_str(db, user):
 @pytest.mark.django_db
 class TestAccounts:
     def test_create_user(self, create_user_node):
-        response = create_user_node()
+        response = create_user_node(response=True)
         print(response)
-        assert response["success"] is True
-        assert response["errors"] == None
+        assert "errors" not in response
 
     # Requires create_user since the list_users query invokes the users field of graphql_auth which makes a request to the *PostGres* auth user model
     def test_list_users(self, create_user, client):
@@ -37,3 +37,54 @@ class TestAccounts:
         user = UserNode.nodes.get_or_none(uid=uid)
         print(user)
         assert user is not None
+
+    def test_user_can_follow(self, create_user_node):
+        follower_token = create_user_node(token=True)
+        # create other user to follow
+        email = "bobby@bob.com"
+        username = "my_boby"
+        user = create_user_node(email=email, username=username)
+        print(user)
+        response = graphql_query(
+            queries.follow_user,
+            variables={"uid": str(user.uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert response["data"]["followUser"]["user"]["uid"] == str(user.uid)
+        assert response["data"]["followUser"]["user"]["followersCount"] == 1
+        assert response["data"]["followUser"]["user"]["email"] == email
+        assert response["data"]["followUser"]["user"]["username"] == username
+
+    def test_user_cannot_follow_twice(self, create_user_node):
+        follower_token = create_user_node(token=True)
+        # create other user to follow
+        user = create_user_node()
+        print(user)
+        response1 = graphql_query(
+            queries.follow_user,
+            variables={"uid": str(user.uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        print(response1)
+        response2 = graphql_query(
+            queries.follow_user,
+            variables={"uid": str(user.uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        print(response2)
+        assert "errors" in response2
+        assert response2["errors"][0]["message"] == USER_ALREADY_FOLLOWED_ERROR
+
+    def test_user_cannot_follow_invalid_user(self, create_user_node):
+        follower_token = create_user_node(token=True)
+        invalid_user_uid = "1234"
+        response = graphql_query(
+            queries.follow_user,
+            variables={"uid": invalid_user_uid},
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        print(response)
+        assert "errors" in response
+        assert response["errors"][0]["message"] == USER_NOT_FOUND_ERROR
