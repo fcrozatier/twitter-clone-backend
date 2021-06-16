@@ -45,3 +45,6 @@ class UserNode(StructuredNode):
     retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=DateTimeRel)
     likes = RelationshipTo(LikeableNode, "LIKES", model=DateTimeRel)
     comments = RelationshipTo(CommentNode, "COMMENTS", model=DateTimeRel)
+    follows = RelationshipTo("UserNode", "FOLLOWS", model=DateTimeRel)
+    followers = RelationshipFrom("UserNode", "FOLLOWS", model=DateTimeRel)
+    followers_count = IntegerProperty(default=0)
