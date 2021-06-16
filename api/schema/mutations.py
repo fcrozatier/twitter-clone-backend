@@ -22,7 +22,7 @@ class CreateLike(graphene.Mutation):
 
     @login_required
     def mutate(parent, info, uid, type):
-        likeable = LikeableFactory().get_or_none(uid, type)
+        likeable = LikeableFactory.get_or_none(uid, type)
         if not likeable:
             raise Exception(NOT_LIKEABLE)
 
