@@ -3,14 +3,46 @@ from accounts.decorators import login_required, user_verified
 from api.errors import (
     ALREADY_LIKED_ERROR,
     COMMENT_EMPTY_ERROR,
+    NOT_COMMENTABLE,
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
 )
 from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
-from api.models.factory import LikeableFactory
-from api.schema.types import CommentType, LikeableType, ReTweetType, TweetType
+from api.models.factory import CommentableFactory, LikeableFactory
+from api.schema.types import CommentableType, LikeableType, ReTweetType, TweetType
 from graphene.types.objecttype import ObjectType
+
+
+class CreateComment(graphene.Mutation):
+    class Arguments:
+        uid = graphene.String(required=True)
+        type = graphene.String(required=True)
+        content = graphene.String(required=True)
+
+    commentable = graphene.Field(CommentableType)
+
+    @login_required
+    @user_verified
+    def mutate(parent, info, uid, type, content):
+        if content == "":
+            raise Exception(COMMENT_EMPTY_ERROR)
+
+        commentable = CommentableFactory.get_or_none(uid=uid, type=type)
+        if not commentable:
+            raise Exception(NOT_COMMENTABLE)
+
+        comment_node = CommentNode(content=content).save()
+
+        user_uid = info.context.user.uid
+        user_node = UserNode.nodes.get(uid=user_uid)
+        user_node.comments.connect(comment_node)
+
+        commentable.comments += 1
+        commentable.save()
+
+        comment_node.about.connect(commentable)
+        return CreateComment(commentable=commentable)
 
 
 class CreateLike(graphene.Mutation):
@@ -78,36 +110,6 @@ class CreateReTweet(graphene.Mutation):
         user_node.retweets.connect(retweet_node)
 
         return CreateReTweet(retweet=retweet_node)
-
-
-class CreateComment(graphene.Mutation):
-    class Arguments:
-        tweet_uid = graphene.String(required=True)
-        content = graphene.String(required=True)
-
-    comment = graphene.Field(CommentType)
-
-    @login_required
-    @user_verified
-    def mutate(parent, info, tweet_uid, content):
-        if content == "":
-            raise Exception(COMMENT_EMPTY_ERROR)
-
-        tweet = TweetNode.nodes.get_or_none(uid=tweet_uid)
-        if not tweet:
-            raise Exception(TWEET_NOT_FOUND_ERROR)
-
-        comment_node = CommentNode(content=content).save()
-
-        user_uid = info.context.user.uid
-        user_node = UserNode.nodes.get(uid=user_uid)
-        user_node.comments.connect(comment_node)
-
-        tweet.comments += 1
-        tweet.save()
-
-        comment_node.tweet.connect(tweet)
-        return CreateComment(comment=comment_node)
 
 
 class Mutation(ObjectType):

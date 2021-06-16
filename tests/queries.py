@@ -122,19 +122,29 @@ create_like = """mutation createLike(
 }"""
 
 create_comment = """mutation createComment(
+    $uid: String!,
+    $type: String!
     $content: String!,
-    $tweetUid: String!
 ) {
-  createComment(content: $content, tweetUid: $tweetUid){
-    comment {
-      uid
-      content
-      created
-      tweet {
-        uid
+  createComment(uid: $uid, type: $type, content: $content){
+    commentable {
+      __typename
+      comments
+      commentsList {
         content
+        created
+      }
+      ... on TweetType {
+        uid
         likes
-        comments
+      	content
+      }
+      ... on ReTweetType {
+        uid
+        likes
+        tweet {
+          content
+        }
       }
     }
   }
