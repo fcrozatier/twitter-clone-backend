@@ -30,7 +30,6 @@ class LikeableNode(StructuredNode):
     uid = UniqueIdProperty()
     likes = IntegerProperty(default=0)
     created = DateTimeProperty(default_now=True)
-    user = RelationshipFrom("UserNode", "LIKES", model=LikeRel)
 
 
 class TweetNode(LikeableNode):
