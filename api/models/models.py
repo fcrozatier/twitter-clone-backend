@@ -10,19 +10,7 @@ from neomodel import (
 from neomodel.relationship_manager import RelationshipFrom
 
 
-class TweetRel(StructuredRel):
-    date = DateTimeProperty(default_now=True)
-
-
-class LikeRel(StructuredRel):
-    date = DateTimeProperty(default_now=True)
-
-
-class ReTweetRel(StructuredRel):
-    date = DateTimeProperty(default_now=True)
-
-
-class CommentRel(StructuredRel):
+class DateTimeRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
@@ -32,25 +20,28 @@ class LikeableNode(StructuredNode):
     created = DateTimeProperty(default_now=True)
 
 
-class TweetNode(LikeableNode):
-    content = StringProperty(required=True)
+class CommentableNode(StructuredNode):
     comments = IntegerProperty(default=0)
-    retweets = IntegerProperty(default=0)
-
-
-class ReTweetNode(LikeableNode):
-    comments = IntegerProperty(default=0)
-    tweet = RelationshipTo(TweetNode, "ORIGINAL")
+    commented = RelationshipFrom("CommentNode", "ABOUT")
 
 
 class CommentNode(LikeableNode):
     content = StringProperty(required=True)
-    tweet = RelationshipTo(TweetNode, "ABOUT")
+    about = RelationshipTo(CommentableNode, "ABOUT")
+
+
+class TweetNode(CommentableNode, LikeableNode):
+    content = StringProperty(required=True)
+    retweets = IntegerProperty(default=0)
+
+
+class ReTweetNode(CommentableNode, LikeableNode):
+    tweet = RelationshipTo(TweetNode, "ORIGINAL")
 
 
 class UserNode(StructuredNode):
     uid = StringProperty(required=True)
-    tweets = RelationshipTo(TweetNode, "TWEETS", model=TweetRel)
-    retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=ReTweetRel)
-    likes = RelationshipTo(LikeableNode, "LIKES", model=LikeRel)
-    comments = RelationshipTo(CommentNode, "COMMENTS", model=CommentRel)
+    tweets = RelationshipTo(TweetNode, "TWEETS", model=DateTimeRel)
+    retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=DateTimeRel)
+    likes = RelationshipTo(LikeableNode, "LIKES", model=DateTimeRel)
+    comments = RelationshipTo(CommentNode, "COMMENTS", model=DateTimeRel)
