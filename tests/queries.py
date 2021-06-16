@@ -149,3 +149,16 @@ create_comment = """mutation createComment(
     }
   }
 }"""
+
+follow_user = """mutation followUser(
+  $uid: String!
+) {
+  followUser(uid: $uid){
+    user {
+      uid
+      email
+      username
+      followersCount
+    }
+  }
+}"""

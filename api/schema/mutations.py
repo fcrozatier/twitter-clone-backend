@@ -7,10 +7,18 @@ from api.errors import (
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
+    USER_ALREADY_FOLLOWED_ERROR,
+    USER_NOT_FOUND_ERROR,
 )
 from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.models.factory import CommentableFactory, LikeableFactory
-from api.schema.types import CommentableType, LikeableType, ReTweetType, TweetType
+from api.schema.types import (
+    CommentableType,
+    LikeableType,
+    ReTweetType,
+    TweetType,
+    UserType,
+)
 from graphene.types.objecttype import ObjectType
 
 
@@ -112,8 +120,34 @@ class CreateReTweet(graphene.Mutation):
         return CreateReTweet(retweet=retweet_node)
 
 
+class FollowUser(graphene.Mutation):
+    class Arguments:
+        uid = graphene.String(required=True)
+
+    user = graphene.Field(UserType)
+
+    @login_required
+    def mutate(parent, info, uid):
+        user = UserNode.nodes.get_or_none(uid=uid)
+        if not user:
+            raise Exception(USER_NOT_FOUND_ERROR)
+
+        follower_uid = info.context.user.uid
+        follower = UserNode.nodes.get(uid=follower_uid)
+        if follower.follows.is_connected(user):
+            raise Exception(USER_ALREADY_FOLLOWED_ERROR)
+
+        follower.follows.connect(user)
+
+        user.followers_count += 1
+        user.save()
+
+        return FollowUser(user=user)
+
+
 class Mutation(ObjectType):
     create_tweet = CreateTweet.Field()
     create_retweet = CreateReTweet.Field()
     create_like = CreateLike.Field()
     create_comment = CreateComment.Field()
+    follow_user = FollowUser.Field()
