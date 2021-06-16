@@ -3,3 +3,8 @@ LIKEABLES = [
     "ReTweet",
     "Comment",
 ]
+
+COMMENTABLES = [
+    "Tweet",
+    "ReTweet",
+]
