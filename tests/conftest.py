@@ -31,11 +31,11 @@ def create_user(db, user_factory):
 
 @pytest.fixture
 def valid_user_payload(faker):
-    def make_valid_user_payload():
+    def make_valid_user_payload(email=faker.email(), username=faker.first_name()):
         password = faker.password(length=10)
         payload = {
-            "email": faker.email(),
-            "username": faker.first_name(),
+            "email": email,
+            "username": username,
             "password1": password,
             "password2": password,
         }
@@ -46,19 +46,26 @@ def valid_user_payload(faker):
 
 @pytest.fixture
 def create_user_node(valid_user_payload):
-    def make_user_node(verified=False):
-        response = graphql_query(queries.create_user, variables=valid_user_payload()).json()
+    def make_user_node(verified=False, token=False, uid=False, response=False, **kwargs):
+        rsponse = graphql_query(queries.create_user, variables=valid_user_payload(**kwargs)).json()
+
+        # get the user from postgres to check its uid
+        res = graphql_query(queries.last_user).json()
+        uid = res["data"]["users"]["edges"][0]["node"]["uid"]
+        user = User.objects.get(uid=uid)
 
         if verified:
-            # get the user from postgres to check its uid
-            res = graphql_query(queries.last_user).json()
-            uid = res["data"]["users"]["edges"][0]["node"]["uid"]
-            user = User.objects.get(uid=uid)
-
             # change the user status to verified
             user.status.verified = True
             user.status.save()
-        return response["data"]["register"]
+
+        if token:
+            return rsponse["data"]["register"]["token"]
+
+        if response:
+            return rsponse
+
+        return user
 
     return make_user_node
 
