@@ -64,6 +64,39 @@ query ($email: String!){
 
 """
 
+profile = """query {
+   myProfile {
+    email
+    username
+    followersCount
+    tweets {
+      created
+      content
+    }
+    retweets {
+      likes
+      tweet {
+        uid
+      }
+    }
+    comments {
+      content
+    }
+    likes {
+      __typename
+      ... on TweetType {
+        uid
+      }
+      ... on ReTweetType {
+        uid
+      }
+      ... on CommentType {
+        uid
+      }
+    }
+  }
+}"""
+
 # Tweet queries
 create_tweet = """mutation newTweet(
     $content: String!
