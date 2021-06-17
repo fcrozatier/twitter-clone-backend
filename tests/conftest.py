@@ -2,7 +2,7 @@ from random import randint
 
 import pytest
 from graphene_django.utils.testing import graphql_query
-from neomodel import db
+from neomodel import db as neodb
 from pytest_factoryboy import register
 
 import tests.queries as queries
@@ -10,32 +10,24 @@ from accounts.models import User
 from api.models import CommentNode, ReTweetNode, TweetNode
 from tests.factories import UserFactory
 
-
-@pytest.fixture(autouse=True, scope="session")
-def setup_neo_test_db():
-    print("Initializing test session fixture !")
-    db.begin()
-    yield
-    print("Tear down session !")
-    db.rollback()
-
-
 register(UserFactory)
 
 
-@pytest.fixture
-def create_user(db, user_factory):
-    user = user_factory.create()
-    return user
+@pytest.fixture(autouse=True, scope="session")
+def setup_neo_test_db():
+    neodb.begin()
+    yield
+    neodb.rollback()
 
 
 @pytest.fixture
 def valid_user_payload(faker):
-    def make_valid_user_payload(email=faker.email(), username=faker.first_name()):
+    # Call faker in the body and not the params to be able to create multiple distinct user in the same test
+    def make_valid_user_payload(email=None, username=None):
         password = faker.password(length=10)
         payload = {
-            "email": email,
-            "username": username,
+            "email": email or faker.email(),
+            "username": username or faker.first_name(),
             "password1": password,
             "password2": password,
         }
@@ -46,7 +38,18 @@ def valid_user_payload(faker):
 
 @pytest.fixture
 def create_user_node(valid_user_payload):
-    def make_user_node(verified=False, token=False, uid=False, response=False, **kwargs):
+    """
+    Fixture to create a user in postgres db and neodb
+    Params:
+        username / email for a custom user
+        verified if you want a verified user
+        token returns the user token
+        response returns the base response
+            token has precedence over response
+    Returns the user created
+    """
+
+    def make_user_node(verified=False, token=False, response=False, **kwargs):
         rsponse = graphql_query(queries.create_user, variables=valid_user_payload(**kwargs)).json()
 
         # get the user from postgres to check its uid
@@ -59,13 +62,14 @@ def create_user_node(valid_user_payload):
             user.status.verified = True
             user.status.save()
 
-        if token:
-            return rsponse["data"]["register"]["token"]
-
         if response:
             return rsponse
 
-        return user
+        tken = rsponse["data"]["register"]["token"]
+        if token:
+            return tken
+
+        return {"node": user, "token": tken}
 
     return make_user_node
 
