@@ -97,6 +97,20 @@ profile = """query {
   }
 }"""
 
+my_followers = """query {
+  myFollowers {
+    uid
+    email
+  }
+}"""
+
+my_subs = """query {
+  mySubs {
+    uid
+    email
+  }
+}"""
+
 # Tweet queries
 create_tweet = """mutation newTweet(
     $content: String!
