@@ -11,7 +11,6 @@ from api.errors import (
     USER_NOT_FOUND_ERROR,
 )
 from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
-from api.models.factory import CommentableFactory, LikeableFactory
 from api.schema.types import (
     CommentableType,
     LikeableType,
@@ -36,8 +35,13 @@ class CreateComment(graphene.Mutation):
         if content == "":
             raise Exception(COMMENT_EMPTY_ERROR)
 
-        commentable = CommentableFactory.get_or_none(uid=uid, type=type)
-        if not commentable:
+        try:
+            type_cls = getattr(info.schema, type)
+            if CommentableType in type_cls._meta.interfaces:
+                commentable = getattr(info.schema, type).get_node(uid)
+            else:
+                raise Exception(NOT_COMMENTABLE)
+        except:
             raise Exception(NOT_COMMENTABLE)
 
         comment_node = CommentNode(content=content).save()
@@ -62,8 +66,13 @@ class CreateLike(graphene.Mutation):
 
     @login_required
     def mutate(parent, info, uid, type):
-        likeable = LikeableFactory.get_or_none(uid, type)
-        if not likeable:
+        try:
+            type_cls = getattr(info.schema, type)
+            if LikeableType in type_cls._meta.interfaces:
+                likeable = getattr(info.schema, type).get_node(uid)
+            else:
+                raise Exception(NOT_LIKEABLE)
+        except:
             raise Exception(NOT_LIKEABLE)
 
         user_uid = info.context.user.uid
@@ -103,8 +112,9 @@ class CreateReTweet(graphene.Mutation):
 
     @login_required
     def mutate(parent, info, tweet_uid):
-        tweet_node = TweetNode.nodes.get_or_none(uid=tweet_uid)
-        if not tweet_node:
+        try:
+            tweet_node = TweetNode.nodes.get(uid=tweet_uid)
+        except:
             raise Exception(TWEET_NOT_FOUND_ERROR)
 
         tweet_node.retweets += 1
@@ -128,8 +138,9 @@ class FollowUser(graphene.Mutation):
 
     @login_required
     def mutate(parent, info, uid):
-        user = UserNode.nodes.get_or_none(uid=uid)
-        if not user:
+        try:
+            user = UserNode.nodes.get(uid=uid)
+        except:
             raise Exception(USER_NOT_FOUND_ERROR)
 
         follower_uid = info.context.user.uid
