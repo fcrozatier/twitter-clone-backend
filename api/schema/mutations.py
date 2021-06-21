@@ -38,7 +38,7 @@ class CreateComment(graphene.Mutation):
         try:
             type_cls = getattr(info.schema, type)
             if CommentableType in type_cls._meta.interfaces:
-                commentable = getattr(info.schema, type).get_node(uid)
+                commentable = type_cls.get_node(uid)
             else:
                 raise Exception(NOT_COMMENTABLE)
         except:
@@ -69,7 +69,7 @@ class CreateLike(graphene.Mutation):
         try:
             type_cls = getattr(info.schema, type)
             if LikeableType in type_cls._meta.interfaces:
-                likeable = getattr(info.schema, type).get_node(uid)
+                likeable = type_cls.get_node(uid)
             else:
                 raise Exception(NOT_LIKEABLE)
         except:
