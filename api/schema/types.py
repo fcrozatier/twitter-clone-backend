@@ -1,7 +1,6 @@
 from abc import abstractmethod
 
 import graphene
-from accounts.decorators import login_required
 from accounts.models import User
 from api.models.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.schema.decorators import add_base_resolvers
@@ -30,7 +29,6 @@ class LikeableType(graphene.Interface):
         return globals()[type_class_name]
 
 
-# @add_base_resolvers
 class CommentType(ObjectType):
     class Meta:
         interfaces = (LikeableType, BaseDatedType)
@@ -71,7 +69,6 @@ class TweetType(ObjectType):
         return parent.commented.all()
 
 
-# @add_base_resolvers
 class ReTweetType(ObjectType):
     class Meta:
         interfaces = (LikeableType, CommentableType, BaseDatedType)
@@ -90,7 +87,6 @@ class ReTweetType(ObjectType):
         return parent.commented.all()
 
 
-# @add_base_resolvers
 class UserType(ObjectType):
     class Meta:
         interfaces = (BaseDatedType,)
