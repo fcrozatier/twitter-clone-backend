@@ -55,7 +55,6 @@ class ReTweetNode(CommentableNode, LikeableNode, BaseNode):
 
 
 class UserNode(BaseNode):
-    # uid = StringProperty(required=True)
     tweets = RelationshipTo(TweetNode, "TWEETS", model=DateTimeRel)
     retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=DateTimeRel)
     likes = RelationshipTo(LikeableNode, "LIKES", model=DateTimeRel)
