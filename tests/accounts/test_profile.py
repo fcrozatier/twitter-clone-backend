@@ -5,12 +5,12 @@ from tests import queries
 
 @pytest.mark.django_db
 class TestProfile:
-    def test_user_can_query_profile(self, create_user_node):
+    def test_user_can_query_my_profile(self, create_user_node):
         username = "JJ"
         email = "j@j.com"
         user_token = create_user_node(token=True, username=username, email=email)
         response = graphql_query(
-            queries.profile,
+            queries.my_profile,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         print(response)
@@ -39,7 +39,7 @@ class TestProfile:
         assert "errors" not in "response"
         assert response["data"]["myProfile"]["followersCount"] == 1
 
-    def test_profile_tweets(self, create_user_node, create_node):
+    def test_profile_updates_with_tweets(self, create_user_node, create_node):
         user = create_user_node(verified=True)
         type = "TweetType"
         tweet_node = create_node(type)
@@ -60,7 +60,7 @@ class TestProfile:
         assert response["data"]["myProfile"]["tweets"] != []
         assert response["data"]["myProfile"]["tweets"][0]["content"] == tweet_node.content
 
-    def test_profile_retweets(self, create_user_node, create_node):
+    def test_profile_update_with_retweets(self, create_user_node, create_node):
         user = create_user_node(verified=True)
         tweet_node = create_node("TweetType")
 
@@ -87,7 +87,7 @@ class TestProfile:
             pytest.param("ReTweetType", id="retweet"),
         ],
     )
-    def test_profile_comments(self, create_user_node, create_node, faker, type):
+    def test_profile_updates_with_comments(self, create_user_node, create_node, faker, type):
         user = create_user_node(verified=True)
         content_node = create_node(type)
         comment = faker.sentence()
@@ -116,7 +116,7 @@ class TestProfile:
             pytest.param("CommentType", id="comment"),
         ],
     )
-    def test_profile_likes(self, create_user_node, create_node, type):
+    def test_profile_updates_with_likes(self, create_user_node, create_node, type):
         user = create_user_node(verified=True)
         content_node = create_node(type)
 

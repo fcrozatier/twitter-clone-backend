@@ -64,7 +64,7 @@ query ($email: String!){
 
 """
 
-profile = """query {
+my_profile = """query {
    myProfile {
     email
     username
