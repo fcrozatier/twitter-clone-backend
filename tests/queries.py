@@ -64,6 +64,8 @@ query ($email: String!){
 
 """
 
+# Profile queries
+
 my_profile = """query {
    myProfile {
     email
@@ -110,6 +112,41 @@ my_subs = """query {
     email
   }
 }"""
+
+user_profile = """query userProfile(
+    $uid: String!
+) {
+  userProfile(uid: $uid) {
+    uid
+    email
+    username
+    followersCount
+    tweets {
+      created
+      content
+    }
+  }
+}"""
+
+user_followers = """query userFollowers(
+    $uid: String!
+) {
+  userFollowers(uid: $uid) {
+    uid
+    email
+  }
+}"""
+
+user_subs = """query userSubs(
+    $uid: String!
+) {
+  userSubs(uid: $uid) {
+    uid
+    email
+  }
+}
+"""
+
 
 # Tweet queries
 create_tweet = """mutation newTweet(
