@@ -155,9 +155,9 @@ class TestProfile:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["myFollowers"] != []
-        assert response["data"]["myFollowers"][0]["uid"] == str(follower["node"].uid)
-        assert response["data"]["myFollowers"][0]["email"] == (follower["node"].email)
+        assert response["data"]["myProfile"]["followers"] != []
+        assert response["data"]["myProfile"]["followers"][0]["uid"] == str(follower["node"].uid)
+        assert response["data"]["myProfile"]["followers"][0]["email"] == (follower["node"].email)
 
     def test_my_subs(self, create_user_node):
         user = create_user_node()
@@ -176,9 +176,9 @@ class TestProfile:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["mySubs"] != []
-        assert response["data"]["mySubs"][0]["uid"] == str(followed_user["node"].uid)
-        assert response["data"]["mySubs"][0]["email"] == (followed_user["node"].email)
+        assert response["data"]["myProfile"]["follows"] != []
+        assert response["data"]["myProfile"]["follows"][0]["uid"] == str(followed_user["node"].uid)
+        assert response["data"]["myProfile"]["follows"][0]["email"] == (followed_user["node"].email)
 
     def test_user_profile(self, create_user_node):
         my_token = create_user_node(token=True)
@@ -230,9 +230,9 @@ class TestProfile:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["userFollowers"] != []
-        assert response["data"]["userFollowers"][0]["uid"] == str(follower["node"].uid)
-        assert response["data"]["userFollowers"][0]["email"] == (follower["node"].email)
+        assert response["data"]["userProfile"]["followers"] != []
+        assert response["data"]["userProfile"]["followers"][0]["uid"] == str(follower["node"].uid)
+        assert response["data"]["userProfile"]["followers"][0]["email"] == (follower["node"].email)
 
     def test_user_subs(self, create_user_node):
         my_token = create_user_node(token=True)
@@ -253,6 +253,6 @@ class TestProfile:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["userSubs"] != []
-        assert response["data"]["userSubs"][0]["uid"] == str(followed_user["node"].uid)
-        assert response["data"]["userSubs"][0]["email"] == (followed_user["node"].email)
+        assert response["data"]["userProfile"]["follows"] != []
+        assert response["data"]["userProfile"]["follows"][0]["uid"] == str(followed_user["node"].uid)
+        assert response["data"]["userProfile"]["follows"][0]["email"] == (followed_user["node"].email)
