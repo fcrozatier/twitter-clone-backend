@@ -153,7 +153,9 @@ create_like = """mutation createLike(
   createLike(uid: $uid, type: $type){
     likeable {
         __typename
+      ... on BaseDatedType {
         uid
+      }
         likes
       ... on TweetType{
         content

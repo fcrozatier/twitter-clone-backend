@@ -1,13 +1,24 @@
+from abc import abstractmethod
+
 import graphene
+from accounts.decorators import login_required
 from accounts.models import User
+from api.models.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.schema.decorators import add_base_resolvers
 from graphene.types.objecttype import ObjectType
 
 
-class LikeableType(graphene.Interface):
+class BaseDatedType(graphene.Interface):
     uid = graphene.String(required=True)
-    likes = graphene.Int()
     created = graphene.DateTime()
+
+    @abstractmethod
+    def get_node():
+        pass
+
+
+class LikeableType(graphene.Interface):
+    likes = graphene.Int()
 
     @classmethod
     def resolve_type(cls, instance, info):
@@ -19,12 +30,17 @@ class LikeableType(graphene.Interface):
         return globals()[type_class_name]
 
 
-@add_base_resolvers
+# @add_base_resolvers
 class CommentType(ObjectType):
     class Meta:
-        interfaces = (LikeableType,)
+        interfaces = (LikeableType, BaseDatedType)
 
     content = graphene.String(required=True)
+
+    @classmethod
+    def get_node(cls, uid):
+        print("from get node")
+        return CommentNode.nodes.get(uid=uid)
 
 
 class CommentableType(graphene.Interface):
@@ -39,23 +55,33 @@ class CommentableType(graphene.Interface):
 
 
 @add_base_resolvers
-class TweetType(graphene.ObjectType):
+class TweetType(ObjectType):
     class Meta:
-        interfaces = (LikeableType, CommentableType)
+        interfaces = (LikeableType, CommentableType, BaseDatedType)
 
     content = graphene.String(required=True)
     retweets = graphene.Int()
+
+    @classmethod
+    def get_node(cls, uid):
+        print("from get node")
+        return TweetNode.nodes.get(uid=uid)
 
     def resolve_comments_list(parent, info):
         return parent.commented.all()
 
 
-@add_base_resolvers
+# @add_base_resolvers
 class ReTweetType(ObjectType):
     class Meta:
-        interfaces = (LikeableType, CommentableType)
+        interfaces = (LikeableType, CommentableType, BaseDatedType)
 
     tweet = graphene.Field(TweetType)
+
+    @classmethod
+    def get_node(cls, uid):
+        print("from get node")
+        return ReTweetNode.nodes.get(uid=uid)
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
@@ -64,16 +90,24 @@ class ReTweetType(ObjectType):
         return parent.commented.all()
 
 
-@add_base_resolvers
+# @add_base_resolvers
 class UserType(ObjectType):
-    uid = graphene.String(required=True)
+    class Meta:
+        interfaces = (BaseDatedType,)
+
+    uid = graphene.String(required=True, source="uid")
     email = graphene.String()
     username = graphene.String()
-    followers_count = graphene.Int()
+    followers_count = graphene.Int(source="followers_count")
     tweets = graphene.List(TweetType)
     retweets = graphene.List(ReTweetType)
     comments = graphene.List(CommentType)
     likes = graphene.List(LikeableType)
+
+    @classmethod
+    def get_node(cls, uid):
+        print("from get node")
+        return UserNode.nodes.get(uid=uid)
 
     def resolve_email(parent, info):
         return User.objects.get(uid=parent.uid).email
