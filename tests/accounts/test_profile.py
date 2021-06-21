@@ -1,4 +1,5 @@
 import pytest
+from api.errors import GENERIC_ERROR, USER_NOT_FOUND_ERROR
 from graphene_django.utils.testing import graphql_query
 from tests import queries
 
@@ -14,7 +15,7 @@ class TestProfile:
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myProfile"]["username"] == username
         assert response["data"]["myProfile"]["email"] == email
         assert response["data"]["myProfile"]["followersCount"] == 0
@@ -32,11 +33,11 @@ class TestProfile:
         assert "errors" not in res_add_follower
 
         response = graphql_query(
-            queries.profile,
+            queries.my_profile,
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myProfile"]["followersCount"] == 1
 
     def test_profile_updates_with_tweets(self, create_user_node, create_node):
@@ -52,11 +53,11 @@ class TestProfile:
         assert "errors" not in res_create_content
 
         response = graphql_query(
-            queries.profile,
+            queries.my_profile,
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myProfile"]["tweets"] != []
         assert response["data"]["myProfile"]["tweets"][0]["content"] == tweet_node.content
 
@@ -72,11 +73,11 @@ class TestProfile:
         assert "errors" not in res_create_content
 
         response = graphql_query(
-            queries.profile,
+            queries.my_profile,
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myProfile"]["retweets"] != []
         assert response["data"]["myProfile"]["retweets"][0]["tweet"]["uid"] == tweet_node.uid
 
@@ -100,11 +101,11 @@ class TestProfile:
         assert "errors" not in res_create_content
 
         response = graphql_query(
-            queries.profile,
+            queries.my_profile,
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myProfile"]["comments"] != []
         assert response["data"]["myProfile"]["comments"][0]["content"] == comment
 
@@ -128,11 +129,11 @@ class TestProfile:
         assert "errors" not in res_create_content
 
         response = graphql_query(
-            queries.profile,
+            queries.my_profile,
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myProfile"]["likes"] != []
         assert response["data"]["myProfile"]["likes"][0]["__typename"] == type
         assert response["data"]["myProfile"]["likes"][0]["uid"] == content_node.uid
@@ -153,7 +154,7 @@ class TestProfile:
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["myFollowers"] != []
         assert response["data"]["myFollowers"][0]["uid"] == str(follower["node"].uid)
         assert response["data"]["myFollowers"][0]["email"] == (follower["node"].email)
@@ -174,7 +175,84 @@ class TestProfile:
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         print(response)
-        assert "errors" not in "response"
+        assert "errors" not in response
         assert response["data"]["mySubs"] != []
         assert response["data"]["mySubs"][0]["uid"] == str(followed_user["node"].uid)
         assert response["data"]["mySubs"][0]["email"] == (followed_user["node"].email)
+
+    def test_user_profile(self, create_user_node):
+        my_token = create_user_node(token=True)
+        username = "JJ"
+        email = "j@j.com"
+        user_node = create_user_node(username=username, email=email)
+        variables = {"uid": str(user_node["node"].uid)}
+        response = graphql_query(
+            queries.user_profile,
+            variables=variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert response["data"]["userProfile"]["username"] == username
+        assert response["data"]["userProfile"]["email"] == email
+        assert response["data"]["userProfile"]["followersCount"] == 0
+        assert response["data"]["userProfile"]["tweets"] == []
+
+    def test_bad_user_profile(self, create_user_node):
+        my_token = create_user_node(token=True)
+        bad_user_uid = "1234"
+        variables = {"uid": bad_user_uid}
+        response = graphql_query(
+            queries.user_profile,
+            variables=variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+        assert "errors" in response
+        assert response["errors"][0]["message"] == GENERIC_ERROR
+
+    def test_user_followers(self, create_user_node):
+        my_token = create_user_node(token=True)
+        user = create_user_node()
+        follower = create_user_node()
+
+        res_add_follower = graphql_query(
+            queries.follow_user,
+            variables={"uid": str(user["node"].uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower['token']}"},
+        ).json()
+        assert "errors" not in res_add_follower
+
+        response = graphql_query(
+            queries.user_followers,
+            variables={"uid": str(user["node"].uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert response["data"]["userFollowers"] != []
+        assert response["data"]["userFollowers"][0]["uid"] == str(follower["node"].uid)
+        assert response["data"]["userFollowers"][0]["email"] == (follower["node"].email)
+
+    def test_user_subs(self, create_user_node):
+        my_token = create_user_node(token=True)
+        user = create_user_node()
+        followed_user = create_user_node()
+
+        res_add_follower = graphql_query(
+            queries.follow_user,
+            variables={"uid": str(followed_user["node"].uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+        ).json()
+        assert "errors" not in res_add_follower
+
+        response = graphql_query(
+            queries.user_subs,
+            variables={"uid": str(user["node"].uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert response["data"]["userSubs"] != []
+        assert response["data"]["userSubs"][0]["uid"] == str(followed_user["node"].uid)
+        assert response["data"]["userSubs"][0]["email"] == (followed_user["node"].email)
