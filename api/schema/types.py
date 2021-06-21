@@ -25,11 +25,7 @@ class LikeableType(graphene.Interface):
 
     @classmethod
     def resolve_type(cls, instance, info):
-        """
-        We know instance is a likeable node since this method is only called after a CreateLike mutation.
-        """
-        node_class_name = instance.__class__.__name__
-        type_class_name = node_class_name.replace("Node", "Type")
+        type_class_name = instance.__class__.get_type()
         return getattr(info.schema, type_class_name)
 
 
@@ -50,8 +46,7 @@ class CommentableType(graphene.Interface):
 
     @classmethod
     def resolve_type(cls, instance, info):
-        node_class_name = instance.__class__.__name__
-        type_class_name = node_class_name.replace("Node", "Type")
+        type_class_name = instance.__class__.get_type()
         return getattr(info.schema, type_class_name)
 
 

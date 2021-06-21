@@ -9,15 +9,27 @@ from neomodel import (
 )
 from neomodel.relationship_manager import RelationshipFrom
 
+# Relations
+
 
 class DateTimeRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
-class LikeableNode(StructuredNode):
+# Abstract classes
+
+
+class BaseNode(StructuredNode):
     uid = UniqueIdProperty()
-    likes = IntegerProperty(default=0)
     created = DateTimeProperty(default_now=True)
+
+    @classmethod
+    def get_type(cls):
+        return cls.__name__.replace("Node", "Type")
+
+
+class LikeableNode(StructuredNode):
+    likes = IntegerProperty(default=0)
 
 
 class CommentableNode(StructuredNode):
@@ -25,22 +37,25 @@ class CommentableNode(StructuredNode):
     commented = RelationshipFrom("CommentNode", "ABOUT")
 
 
-class CommentNode(LikeableNode):
+# Concrete classes
+
+
+class CommentNode(LikeableNode, BaseNode):
     content = StringProperty(required=True)
     about = RelationshipTo(CommentableNode, "ABOUT")
 
 
-class TweetNode(CommentableNode, LikeableNode):
+class TweetNode(CommentableNode, LikeableNode, BaseNode):
     content = StringProperty(required=True)
     retweets = IntegerProperty(default=0)
 
 
-class ReTweetNode(CommentableNode, LikeableNode):
+class ReTweetNode(CommentableNode, LikeableNode, BaseNode):
     tweet = RelationshipTo(TweetNode, "ORIGINAL")
 
 
-class UserNode(StructuredNode):
-    uid = StringProperty(required=True)
+class UserNode(BaseNode):
+    # uid = StringProperty(required=True)
     tweets = RelationshipTo(TweetNode, "TWEETS", model=DateTimeRel)
     retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=DateTimeRel)
     likes = RelationshipTo(LikeableNode, "LIKES", model=DateTimeRel)
