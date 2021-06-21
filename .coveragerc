@@ -7,6 +7,6 @@ omit = *migration*
         *apps.py
 
 [report]
-fail_under = 95
+fail_under = 96
 show_missing = True
 skip_covered = True
