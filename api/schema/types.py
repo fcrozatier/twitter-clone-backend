@@ -30,7 +30,7 @@ class LikeableType(graphene.Interface):
         """
         node_class_name = instance.__class__.__name__
         type_class_name = node_class_name.replace("Node", "Type")
-        return globals()[type_class_name]
+        return getattr(info.schema, type_class_name)
 
 
 class CommentType(GettableMixin, ObjectType):
@@ -52,7 +52,7 @@ class CommentableType(graphene.Interface):
     def resolve_type(cls, instance, info):
         node_class_name = instance.__class__.__name__
         type_class_name = node_class_name.replace("Node", "Type")
-        return globals()[type_class_name]
+        return getattr(info.schema, type_class_name)
 
 
 class TweetType(GettableMixin, ObjectType):
