@@ -100,16 +100,20 @@ my_profile = """query {
 }"""
 
 my_followers = """query {
-  myFollowers {
-    uid
-    email
+  myProfile {
+    followers {
+      uid
+      email
+    }
   }
 }"""
 
 my_subs = """query {
-  mySubs {
-    uid
-    email
+  myProfile {
+    follows {
+      uid
+      email
+    }
   }
 }"""
 
@@ -131,18 +135,22 @@ user_profile = """query userProfile(
 user_followers = """query userFollowers(
     $uid: String!
 ) {
-  userFollowers(uid: $uid) {
-    uid
-    email
+  userProfile(uid: $uid) {
+    followers {
+      uid
+      email
+    }
   }
 }"""
 
 user_subs = """query userSubs(
     $uid: String!
 ) {
-  userSubs(uid: $uid) {
-    uid
-    email
+  userProfile(uid: $uid) {
+    follows {
+      uid
+      email
+    }
   }
 }
 """

@@ -2,7 +2,10 @@ import graphene
 from accounts.models import User
 from api.errors import GENERIC_ERROR
 from api.models.models import CommentNode, ReTweetNode, TweetNode, UserNode
+from api.schema.loaders import UserLoader
 from graphene.types.objecttype import ObjectType
+
+user_loader = UserLoader()
 
 
 class GettableMixin:
@@ -93,6 +96,8 @@ class UserType(GettableMixin, ObjectType):
     tweets = graphene.List(TweetType)
     retweets = graphene.List(ReTweetType)
     comments = graphene.List(CommentType)
+    followers = graphene.List(lambda: UserType)
+    follows = graphene.List(lambda: UserType)
     likes = graphene.List(LikeableType)
 
     @classmethod
@@ -113,6 +118,14 @@ class UserType(GettableMixin, ObjectType):
 
     def resolve_comments(parent, info):
         return parent.comments.all()
+
+    def resolve_followers(parent, info):
+        followers_keys = [follower.uid for follower in parent.followers.all()]
+        return user_loader.load_many(followers_keys)
+
+    def resolve_follows(parent, info):
+        follows_keys = [followed.uid for followed in parent.follows.all()]
+        return user_loader.load_many(follows_keys)
 
     def resolve_likes(parent, info):
         return parent.likes.all()
