@@ -106,9 +106,16 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == NOT_LIKEABLE
 
-    def test_cannot_like_badtypes(self, create_user_node, create_tweet_node):
+    @pytest.mark.parametrize(
+        "type",
+        [
+            pytest.param("BadType", id="Nonexisting type"),
+            pytest.param("UserType", id="Nonlikeable type"),
+        ],
+    )
+    def test_cannot_like_badtypes(self, create_user_node, create_tweet_node, type):
         tweet = create_tweet_node()
-        query_variables = {"uid": tweet.uid, "type": "BadType"}
+        query_variables = {"uid": tweet.uid, "type": type}
         user_token = create_user_node(token=True)
         response = graphql_query(
             queries.create_like,
@@ -203,11 +210,18 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == COMMENT_EMPTY_ERROR
 
-    def test_comment_must_reference_commentable(self, faker, create_user_node):
+    @pytest.mark.parametrize(
+        "type",
+        [
+            pytest.param("TweetType", id="Bad uid"),
+            pytest.param("UserType", id="Bad type"),
+        ],
+    )
+    def test_comment_must_reference_commentable(self, faker, create_user_node, type):
         user_token = create_user_node(verified=True, token=True)
         invalid_tweet_uid = "123"
         content = faker.sentence()
-        comment_variables = {"content": content, "uid": invalid_tweet_uid, "type": "TweetType"}
+        comment_variables = {"content": content, "uid": invalid_tweet_uid, "type": type}
         response = graphql_query(
             queries.create_comment,
             variables=comment_variables,
