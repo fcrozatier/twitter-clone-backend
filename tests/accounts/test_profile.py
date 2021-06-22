@@ -1,5 +1,5 @@
 import pytest
-from api.errors import GENERIC_ERROR, USER_NOT_FOUND_ERROR
+from api.errors import GENERIC_ERROR
 from graphene_django.utils.testing import graphql_query
 from tests import queries
 
@@ -20,6 +20,7 @@ class TestProfile:
         assert response["data"]["myProfile"]["email"] == email
         assert response["data"]["myProfile"]["followersCount"] == 0
         assert response["data"]["myProfile"]["tweets"] == []
+        assert response["data"]["myProfile"]["likes"] == []
 
     def test_profile_updates_with_followers(self, create_user_node):
         user = create_user_node()
@@ -140,14 +141,16 @@ class TestProfile:
 
     def test_my_followers(self, create_user_node):
         user = create_user_node()
-        follower = create_user_node()
 
-        res_add_follower = graphql_query(
-            queries.follow_user,
-            variables={"uid": str(user["node"].uid)},
-            headers={"HTTP_AUTHORIZATION": f"JWT {follower['token']}"},
-        ).json()
-        assert "errors" not in res_add_follower
+        for i in range(0, 10):
+            follower = create_user_node(username=f"follower__{i}")
+
+            res_add_follower = graphql_query(
+                queries.follow_user,
+                variables={"uid": str(user["node"].uid)},
+                headers={"HTTP_AUTHORIZATION": f"JWT {follower['token']}"},
+            ).json()
+            assert "errors" not in res_add_follower
 
         response = graphql_query(
             queries.my_followers,
@@ -156,8 +159,19 @@ class TestProfile:
         print(response)
         assert "errors" not in response
         assert response["data"]["myProfile"]["followers"] != []
-        assert response["data"]["myProfile"]["followers"][0]["uid"] == str(follower["node"].uid)
-        assert response["data"]["myProfile"]["followers"][0]["email"] == (follower["node"].email)
+        assert len(response["data"]["myProfile"]["followers"]) == 10
+        assert response["data"]["myProfile"]["followers"][0]["username"] == "follower__9"
+
+        response = graphql_query(
+            queries.my_followers,
+            variables={"first": 3, "skip": 2},
+            headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert response["data"]["myProfile"]["followers"] != []
+        assert len(response["data"]["myProfile"]["followers"]) == 3
+        assert response["data"]["myProfile"]["followers"][0]["username"] == "follower__7"
 
     def test_my_subs(self, create_user_node):
         user = create_user_node()

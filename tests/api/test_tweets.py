@@ -58,6 +58,47 @@ class TestTweets:
         else:
             assert response["errors"][0]["message"] == TWEET_EMPTY_ERROR
 
+    def test_tweets_order_filter(self, create_user_node):
+        my_token = create_user_node(verified=True, token=True)
+
+        # login and make tweets
+        for i in range(0, 10):
+            variables = {"content": f"tweet {i}"}
+            graphql_query(
+                queries.create_tweet,
+                variables=variables,
+                headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+            ).json()
+
+        response = graphql_query(
+            queries.my_profile,
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+
+        print(response)
+
+        assert len(response["data"]["myProfile"]["tweets"]) == 10
+        assert response["data"]["myProfile"]["tweets"][0]["content"] == "tweet 9"
+        assert response["data"]["myProfile"]["tweets"][9]["content"] == "tweet 0"
+
+        response = graphql_query(
+            """query {
+                myProfile {
+                    tweets(first:2, skip:2) {
+                        created
+                        content
+                    }
+                }
+            }""",
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+
+        print(response)
+
+        assert len(response["data"]["myProfile"]["tweets"]) == 2
+        assert response["data"]["myProfile"]["tweets"][0]["content"] == "tweet 7"
+        assert response["data"]["myProfile"]["tweets"][1]["content"] == "tweet 6"
+
     def test_unauthenticated_user_cannot_like(self, create_tweet_node):
         tweet = create_tweet_node()
         variables = {"uid": tweet.uid, "type": "TweetType"}
