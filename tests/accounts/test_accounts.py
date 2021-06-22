@@ -46,16 +46,16 @@ class TestAccounts:
         user = create_user_node(email=email, username=username)
         print(user)
         response = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["followUser"]["user"]["uid"] == str(user["node"].uid)
-        assert response["data"]["followUser"]["user"]["followersCount"] == 1
-        assert response["data"]["followUser"]["user"]["email"] == email
-        assert response["data"]["followUser"]["user"]["username"] == username
+        assert response["data"]["follow"]["uid"] == str(user["node"].uid)
+        assert response["data"]["follow"]["followersCount"] == 1
+        assert response["data"]["follow"]["email"] == email
+        assert response["data"]["follow"]["username"] == username
 
     def test_user_cannot_follow_twice(self, create_user_node):
         follower_token = create_user_node(token=True)
@@ -63,13 +63,13 @@ class TestAccounts:
         user = create_user_node()
         print(user)
         response1 = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
         ).json()
         print(response1)
         response2 = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
         ).json()
@@ -81,7 +81,7 @@ class TestAccounts:
         follower_token = create_user_node(token=True)
         invalid_user_uid = "1234"
         response = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": invalid_user_uid},
             headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
         ).json()

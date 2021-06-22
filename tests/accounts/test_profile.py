@@ -27,7 +27,7 @@ class TestProfile:
         follower = create_user_node()
 
         res_add_follower = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {follower['token']}"},
         ).json()
@@ -146,7 +146,7 @@ class TestProfile:
             follower = create_user_node(username=f"follower__{i}")
 
             res_add_follower = graphql_query(
-                queries.follow_user,
+                queries.follow,
                 variables={"uid": str(user["node"].uid)},
                 headers={"HTTP_AUTHORIZATION": f"JWT {follower['token']}"},
             ).json()
@@ -178,7 +178,7 @@ class TestProfile:
         followed_user = create_user_node()
 
         res_add_follower = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(followed_user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
@@ -231,7 +231,7 @@ class TestProfile:
         follower = create_user_node()
 
         res_add_follower = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {follower['token']}"},
         ).json()
@@ -254,7 +254,7 @@ class TestProfile:
         followed_user = create_user_node()
 
         res_add_follower = graphql_query(
-            queries.follow_user,
+            queries.follow,
             variables={"uid": str(followed_user["node"].uid)},
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
