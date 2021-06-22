@@ -27,7 +27,6 @@ class CreateComment(graphene.Mutation):
         type = graphene.String(required=True)
         content = graphene.String(required=True)
 
-    # commentable = graphene.Field(CommentableType)
     Output = CommentableType
 
     @login_required
@@ -38,11 +37,12 @@ class CreateComment(graphene.Mutation):
 
         try:
             type_cls = getattr(info.schema, type)
-            if CommentableType in type_cls._meta.interfaces:
-                commentable = type_cls.get_node(uid)
-            else:
-                raise Exception(NOT_COMMENTABLE)
         except:
+            raise Exception(NOT_COMMENTABLE)
+
+        if CommentableType in type_cls._meta.interfaces:
+            commentable = type_cls.get_node(uid)
+        else:
             raise Exception(NOT_COMMENTABLE)
 
         comment_node = CommentNode(content=content).save()
@@ -69,11 +69,12 @@ class CreateLike(graphene.Mutation):
     def mutate(parent, info, uid, type):
         try:
             type_cls = getattr(info.schema, type)
-            if LikeableType in type_cls._meta.interfaces:
-                likeable = type_cls.get_node(uid)
-            else:
-                raise Exception(NOT_LIKEABLE)
         except:
+            raise Exception(NOT_LIKEABLE)
+
+        if LikeableType in type_cls._meta.interfaces:
+            likeable = type_cls.get_node(uid)
+        else:
             raise Exception(NOT_LIKEABLE)
 
         user_uid = info.context.user.uid
