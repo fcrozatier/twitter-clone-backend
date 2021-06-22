@@ -1,6 +1,6 @@
 import pytest
 import tests.queries as queries
-from api.errors import USER_ALREADY_FOLLOWED_ERROR, USER_NOT_FOUND_ERROR
+from api.errors import UNFOLLOW_ERROR, USER_ALREADY_FOLLOWED_ERROR, USER_NOT_FOUND_ERROR
 from api.models import UserNode
 from graphene_django.utils.testing import graphql_query
 
@@ -88,3 +88,48 @@ class TestAccounts:
         print(response)
         assert "errors" in response
         assert response["errors"][0]["message"] == USER_NOT_FOUND_ERROR
+
+    def test_user_can_unfollow(self, create_user_node):
+        follower_token = create_user_node(token=True)
+
+        # create other user to follow
+        email = "bobby@bob.com"
+        username = "my_boby"
+        user = create_user_node(email=email, username=username)
+        variables = {"uid": str(user["node"].uid)}
+
+        response = graphql_query(
+            queries.follow,
+            variables=variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+
+        response = graphql_query(
+            queries.unfollow,
+            variables=variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        assert "errors" not in response
+        assert response["data"]["unfollow"]["uid"] == str(user["node"].uid)
+        assert response["data"]["unfollow"]["followersCount"] == 0
+        assert response["data"]["unfollow"]["email"] == email
+        assert response["data"]["unfollow"]["username"] == username
+
+    def test_must_follow_to_unfollow(self, create_user_node):
+        follower_token = create_user_node(token=True)
+
+        # create other user to follow
+        email = "bobby@bob.com"
+        username = "my_boby"
+        user = create_user_node(email=email, username=username)
+        variables = {"uid": str(user["node"].uid)}
+
+        response = graphql_query(
+            queries.unfollow,
+            variables=variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {follower_token}"},
+        ).json()
+        assert "errors" in response
+        assert response["errors"][0]["message"] == UNFOLLOW_ERROR

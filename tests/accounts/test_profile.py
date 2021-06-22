@@ -1,5 +1,5 @@
 import pytest
-from api.errors import GENERIC_ERROR
+from api.errors import GENERIC_ERROR, USER_NOT_FOUND_ERROR
 from graphene_django.utils.testing import graphql_query
 from tests import queries
 
@@ -223,7 +223,7 @@ class TestProfile:
         ).json()
         print(response)
         assert "errors" in response
-        assert response["errors"][0]["message"] == GENERIC_ERROR
+        assert response["errors"][0]["message"] == USER_NOT_FOUND_ERROR
 
     def test_user_followers(self, create_user_node):
         my_token = create_user_node(token=True)
