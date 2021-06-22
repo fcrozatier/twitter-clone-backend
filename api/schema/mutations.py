@@ -121,7 +121,7 @@ class CreateTweet(graphene.Mutation):
     class Arguments:
         content = graphene.String(required=True)
 
-    tweet = graphene.Field(TweetType)
+    Output = TweetType
 
     @login_required
     @user_verified
@@ -132,7 +132,8 @@ class CreateTweet(graphene.Mutation):
         tweet = TweetNode(content=content).save()
         user = UserNode.nodes.get(uid=user_uid)
         user.tweets.connect(tweet)
-        return CreateTweet(tweet=tweet)
+
+        return tweet
 
 
 class CreateReTweet(graphene.Mutation):
@@ -188,7 +189,7 @@ class FollowUser(graphene.Mutation):
 
 
 class Mutation(ObjectType):
-    create_tweet = CreateTweet.Field()
+    tweet = CreateTweet.Field()
     create_retweet = CreateReTweet.Field()
     like = CreateLike.Field()
     unlike = DeleteLike.Field()

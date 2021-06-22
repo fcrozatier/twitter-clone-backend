@@ -158,17 +158,15 @@ user_subs = """query userSubs(
 
 
 # Tweet queries
-create_tweet = """mutation newTweet(
+tweet = """mutation newTweet(
     $content: String!
 ){
-  createTweet(content: $content){
-    tweet {
+  tweet(content: $content){
       content
       likes
       comments
       retweets
       created
-    }
   }
 }"""
 
