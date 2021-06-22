@@ -19,7 +19,7 @@ class GettableMixin:
         try:
             node = cls._get_node(uid=uid)
         except:
-            cls._raise_error()
+            raise cls._get_error()
         return node
 
     @staticmethod
@@ -56,8 +56,8 @@ class CommentType(GettableMixin, ObjectType):
         return CommentNode.nodes.get(uid=uid)
 
     @classmethod
-    def _raise_error(cls):
-        raise Exception(COMMENT_NOT_FOUND_ERROR)
+    def _get_error(cls):
+        return Exception(COMMENT_NOT_FOUND_ERROR)
 
 
 class CommentableType(graphene.Interface):
@@ -82,8 +82,8 @@ class TweetType(GettableMixin, ObjectType):
         return TweetNode.nodes.get(uid=uid)
 
     @classmethod
-    def _raise_error(cls):
-        raise Exception(TWEET_NOT_FOUND_ERROR)
+    def _get_error(cls):
+        return Exception(TWEET_NOT_FOUND_ERROR)
 
     def resolve_comments_list(parent, info):
         return parent.commented.all()
@@ -100,8 +100,8 @@ class ReTweetType(GettableMixin, ObjectType):
         return ReTweetNode.nodes.get(uid=uid)
 
     @classmethod
-    def _raise_error(cls):
-        raise Exception(RETWEET_NOT_FOUND_ERROR)
+    def _get_error(cls):
+        return Exception(RETWEET_NOT_FOUND_ERROR)
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
@@ -130,8 +130,8 @@ class UserType(GettableMixin, ObjectType):
         return UserNode.nodes.get(uid=uid)
 
     @classmethod
-    def _raise_error(cls):
-        raise Exception(USER_NOT_FOUND_ERROR)
+    def _get_error(cls):
+        return Exception(USER_NOT_FOUND_ERROR)
 
     def resolve_email(parent, info):
         return User.objects.get(uid=parent.uid).email

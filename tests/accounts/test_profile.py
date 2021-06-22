@@ -1,5 +1,5 @@
 import pytest
-from api.errors import GENERIC_ERROR, USER_NOT_FOUND_ERROR
+from api.errors import USER_NOT_FOUND_ERROR
 from graphene_django.utils.testing import graphql_query
 from tests import queries
 

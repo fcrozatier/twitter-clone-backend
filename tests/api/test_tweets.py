@@ -136,10 +136,20 @@ class TestTweets:
         assert response["data"]["like"]["likes"] == nb_likes + 1
         assert response["data"]["like"]["__typename"] == type
 
-    def test_cannot_like_nonexisting_tweet(self, create_user_node):
-        not_proper_tweet_uid = 51
-        query_variables = {"uid": not_proper_tweet_uid, "type": "TweetType"}
+    @pytest.mark.parametrize(
+        "type",
+        [
+            pytest.param("TweetType", id="tweet"),
+            pytest.param("ReTweetType", id="retweet"),
+            pytest.param("CommentType", id="comment"),
+        ],
+    )
+    def test_cannot_like_nonexisting_likeable(self, create_user_node, create_node, type):
         user_token = create_user_node(token=True)
+
+        not_proper_uid = "1234"
+        query_variables = {"uid": not_proper_uid, "type": type}
+
         response = graphql_query(
             queries.like,
             variables=query_variables,
