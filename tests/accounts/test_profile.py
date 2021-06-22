@@ -123,7 +123,7 @@ class TestProfile:
         content_node = create_node(type)
 
         res_create_content = graphql_query(
-            queries.create_like,
+            queries.like,
             variables={"uid": content_node.uid, "type": type},
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()

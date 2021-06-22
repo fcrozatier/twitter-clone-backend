@@ -104,7 +104,7 @@ class TestTweets:
         tweet = create_tweet_node()
         variables = {"uid": tweet.uid, "type": "TweetType"}
         response = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=variables,
         ).json()
         print(response)
@@ -126,22 +126,22 @@ class TestTweets:
         print(f"query vars {query_variables}")
         user_token = create_user_node(token=True)
         response = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         print(f"response {response}")
         assert "errors" not in response
-        assert response["data"]["createLike"]["likeable"]["uid"] == likeable.uid
-        assert response["data"]["createLike"]["likeable"]["likes"] == nb_likes + 1
-        assert response["data"]["createLike"]["likeable"]["__typename"] == type
+        assert response["data"]["like"]["uid"] == likeable.uid
+        assert response["data"]["like"]["likes"] == nb_likes + 1
+        assert response["data"]["like"]["__typename"] == type
 
     def test_cannot_like_nonexisting_tweet(self, create_user_node):
         not_proper_tweet_uid = 51
         query_variables = {"uid": not_proper_tweet_uid, "type": "TweetType"}
         user_token = create_user_node(token=True)
         response = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
@@ -160,7 +160,7 @@ class TestTweets:
         query_variables = {"uid": tweet.uid, "type": type}
         user_token = create_user_node(token=True)
         response = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
@@ -177,12 +177,12 @@ class TestTweets:
         query_variables = {"uid": tweet.uid, "type": type}
         user_token = create_user_node(token=True)
         response1 = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         response2 = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=query_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
@@ -207,13 +207,13 @@ class TestTweets:
         like_variables = {"uid": likeable.uid, "type": "TweetType"}
         user_token = create_user_node(token=True)
         response = graphql_query(
-            queries.create_like,
+            queries.like,
             variables=like_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         print(f"response {response}")
         assert "errors" not in response
-        assert response["data"]["createLike"]["likeable"]["likes"] == nb_likes + 1
+        assert response["data"]["like"]["likes"] == nb_likes + 1
 
         unlike_variables = {"uid": likeable.uid, "type": type}
         response = graphql_query(
