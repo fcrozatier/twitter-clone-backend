@@ -1,6 +1,11 @@
 import graphene
 from accounts.models import User
-from api.errors import GENERIC_ERROR, USER_NOT_FOUND_ERROR
+from api.errors import (
+    COMMENT_NOT_FOUND_ERROR,
+    RETWEET_NOT_FOUND_ERROR,
+    TWEET_NOT_FOUND_ERROR,
+    USER_NOT_FOUND_ERROR,
+)
 from api.models.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.schema.loaders import UserLoader
 from graphene.types.objecttype import ObjectType
@@ -14,7 +19,7 @@ class GettableMixin:
         try:
             node = cls._get_node(uid=uid)
         except:
-            raise Exception(GENERIC_ERROR)
+            cls._raise_error()
         return node
 
     @staticmethod
@@ -50,6 +55,10 @@ class CommentType(GettableMixin, ObjectType):
     def _get_node(cls, uid):
         return CommentNode.nodes.get(uid=uid)
 
+    @classmethod
+    def _raise_error(cls):
+        raise Exception(COMMENT_NOT_FOUND_ERROR)
+
 
 class CommentableType(graphene.Interface):
     comments = graphene.Int()
@@ -72,6 +81,10 @@ class TweetType(GettableMixin, ObjectType):
     def _get_node(cls, uid):
         return TweetNode.nodes.get(uid=uid)
 
+    @classmethod
+    def _raise_error(cls):
+        raise Exception(TWEET_NOT_FOUND_ERROR)
+
     def resolve_comments_list(parent, info):
         return parent.commented.all()
 
@@ -85,6 +98,10 @@ class ReTweetType(GettableMixin, ObjectType):
     @classmethod
     def _get_node(cls, uid):
         return ReTweetNode.nodes.get(uid=uid)
+
+    @classmethod
+    def _raise_error(cls):
+        raise Exception(RETWEET_NOT_FOUND_ERROR)
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
@@ -109,12 +126,12 @@ class UserType(GettableMixin, ObjectType):
     likes = graphene.List(LikeableType, first=graphene.Int(), skip=graphene.Int())
 
     @classmethod
-    def get_node(cls, uid):
-        try:
-            return UserNode.nodes.get(uid=uid)
-        except:
-            raise Exception(USER_NOT_FOUND_ERROR)
-        return node
+    def _get_node(cls, uid):
+        return UserNode.nodes.get(uid=uid)
+
+    @classmethod
+    def _raise_error(cls):
+        raise Exception(USER_NOT_FOUND_ERROR)
 
     def resolve_email(parent, info):
         return User.objects.get(uid=parent.uid).email

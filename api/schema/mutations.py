@@ -6,11 +6,9 @@ from api.errors import (
     NOT_COMMENTABLE,
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
-    TWEET_NOT_FOUND_ERROR,
     UNFOLLOW_ERROR,
     UNLIKED_ERROR,
     USER_ALREADY_FOLLOWED_ERROR,
-    USER_NOT_FOUND_ERROR,
 )
 from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.schema.types import (
@@ -50,7 +48,7 @@ class CreateComment(graphene.Mutation):
         comment_node = CommentNode(content=content).save()
 
         user_uid = info.context.user.uid
-        user_node = UserNode.nodes.get(uid=user_uid)
+        user_node = UserType.get_node(uid=user_uid)
         user_node.comments.connect(comment_node)
 
         commentable.comments += 1
@@ -79,7 +77,7 @@ class CreateLike(graphene.Mutation):
             raise Exception(NOT_LIKEABLE)
 
         user_uid = info.context.user.uid
-        user = UserNode.nodes.get(uid=user_uid)
+        user = UserType.get_node(uid=user_uid)
         if user.likes.is_connected(likeable):
             raise Exception(ALREADY_LIKED_ERROR)
 
@@ -109,7 +107,7 @@ class DeleteLike(graphene.Mutation):
             raise Exception(UNLIKED_ERROR)
 
         user_uid = info.context.user.uid
-        user = UserNode.nodes.get(uid=user_uid)
+        user = UserType.get_node(uid=user_uid)
         if not user.likes.is_connected(likeable):
             raise Exception(UNLIKED_ERROR)
 
@@ -131,8 +129,9 @@ class CreateTweet(graphene.Mutation):
         user_uid = info.context.user.uid
         if content == "":
             raise Exception(TWEET_EMPTY_ERROR)
+
         tweet = TweetNode(content=content).save()
-        user = UserNode.nodes.get(uid=user_uid)
+        user = UserType.get_node(uid=user_uid)
         user.tweets.connect(tweet)
 
         return tweet
@@ -146,10 +145,7 @@ class CreateReTweet(graphene.Mutation):
 
     @login_required
     def mutate(parent, info, tweet_uid):
-        try:
-            tweet_node = TweetNode.nodes.get(uid=tweet_uid)
-        except:
-            raise Exception(TWEET_NOT_FOUND_ERROR)
+        tweet_node = TweetType.get_node(uid=tweet_uid)
 
         tweet_node.retweets += 1
         tweet_node.save()
@@ -158,7 +154,7 @@ class CreateReTweet(graphene.Mutation):
         retweet_node.tweet.connect(tweet_node)
 
         user_uid = info.context.user.uid
-        user_node = UserNode.nodes.get(uid=user_uid)
+        user_node = UserType.get_node(uid=user_uid)
         user_node.retweets.connect(retweet_node)
 
         return retweet_node
@@ -172,10 +168,7 @@ class FollowUser(graphene.Mutation):
 
     @login_required
     def mutate(parent, info, uid):
-        try:
-            user = UserNode.nodes.get(uid=uid)
-        except:
-            raise Exception(USER_NOT_FOUND_ERROR)
+        user = UserType.get_node(uid=uid)
 
         follower_uid = info.context.user.uid
         follower = UserNode.nodes.get(uid=follower_uid)
@@ -201,7 +194,7 @@ class UnFollowUser(graphene.Mutation):
         user = UserType.get_node(uid=uid)
 
         follower_uid = info.context.user.uid
-        follower = UserNode.nodes.get(uid=follower_uid)
+        follower = UserType.get_node(uid=follower_uid)
         if not follower.follows.is_connected(user):
             raise Exception(UNFOLLOW_ERROR)
 
