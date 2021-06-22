@@ -93,18 +93,25 @@ my_profile = """query {
   }
 }"""
 
-my_followers = """query {
+my_followers = """query myFollowers(
+    $first: Int,
+    $skip: Int
+) {
   myProfile {
-    followers {
+    followers(first: $first, skip: $skip) {
       uid
       email
+      username
     }
   }
 }"""
 
-my_subs = """query {
+my_subs = """query mySubs(
+    $first: Int,
+    $skip: Int
+) {
   myProfile {
-    follows {
+    follows(first: $first, skip: $skip) {
       uid
       email
     }

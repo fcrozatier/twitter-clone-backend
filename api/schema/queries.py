@@ -3,7 +3,7 @@ from accounts.decorators import login_required
 from api.schema.types import BaseDatedType, UserType
 
 
-# TODO create my_feed, unlike, unfollow
+# TODO create my_feed, unlike, unfollow, tags
 class Query(graphene.ObjectType):
     my_profile = graphene.Field(UserType)
     my_feed = graphene.List(BaseDatedType)

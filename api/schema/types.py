@@ -17,6 +17,14 @@ class GettableMixin:
             raise Exception(GENERIC_ERROR)
         return node
 
+    @staticmethod
+    def filter_qs(qs, first, skip):
+        if skip:
+            qs = qs[skip:]
+        if first:
+            qs = qs[:first]
+        return qs
+
 
 class BaseDatedType(graphene.Interface):
     uid = graphene.String(required=True)
@@ -29,6 +37,7 @@ class LikeableType(graphene.Interface):
     @classmethod
     def resolve_type(cls, instance, info):
         type_class_name = instance.__class__.get_type()
+        print(f"resolve type {type_class_name}")
         return getattr(info.schema, type_class_name)
 
 
@@ -93,12 +102,12 @@ class UserType(GettableMixin, ObjectType):
     email = graphene.String()
     username = graphene.String()
     followers_count = graphene.Int(source="followers_count")
-    tweets = graphene.List(TweetType)
-    retweets = graphene.List(ReTweetType)
-    comments = graphene.List(CommentType)
-    followers = graphene.List(lambda: UserType)
-    follows = graphene.List(lambda: UserType)
-    likes = graphene.List(LikeableType)
+    tweets = graphene.List(TweetType, first=graphene.Int(), skip=graphene.Int())
+    retweets = graphene.List(ReTweetType, first=graphene.Int(), skip=graphene.Int())
+    comments = graphene.List(CommentType, first=graphene.Int(), skip=graphene.Int())
+    followers = graphene.List(lambda: UserType, first=graphene.Int(), skip=graphene.Int())
+    follows = graphene.List(lambda: UserType, first=graphene.Int(), skip=graphene.Int())
+    likes = graphene.List(LikeableType, first=graphene.Int(), skip=graphene.Int())
 
     @classmethod
     def _get_node(cls, uid):
@@ -110,22 +119,28 @@ class UserType(GettableMixin, ObjectType):
     def resolve_username(parent, info):
         return User.objects.get(uid=parent.uid).username
 
-    def resolve_tweets(parent, info):
-        return parent.tweets.all()
+    def resolve_tweets(parent, info, first=None, skip=None):
+        qs = parent.tweets.order_by("-created")
+        return GettableMixin.filter_qs(qs, first, skip)
 
-    def resolve_retweets(parent, info):
-        return parent.retweets.all()
+    def resolve_retweets(parent, info, first=None, skip=None):
+        qs = parent.retweets.order_by("-created")
+        return GettableMixin.filter_qs(qs, first, skip)
 
-    def resolve_comments(parent, info):
-        return parent.comments.all()
+    def resolve_comments(parent, info, first=None, skip=None):
+        qs = parent.comments.order_by("-created")
+        return GettableMixin.filter_qs(qs, first, skip)
 
-    def resolve_followers(parent, info):
-        followers_keys = [follower.uid for follower in parent.followers.all()]
+    def resolve_followers(parent, info, first=None, skip=None):
+        followers_keys = [follower.uid for follower in parent.followers.order_by("-created")]
+        followers_keys = GettableMixin.filter_qs(followers_keys, first, skip)
         return user_loader.load_many(followers_keys)
 
-    def resolve_follows(parent, info):
-        follows_keys = [followed.uid for followed in parent.follows.all()]
+    def resolve_follows(parent, info, first=None, skip=None):
+        follows_keys = [followed.uid for followed in parent.follows.order_by("-created")]
+        follows_keys = GettableMixin.filter_qs(follows_keys, first, skip)
         return user_loader.load_many(follows_keys)
 
-    def resolve_likes(parent, info):
-        return parent.likes.all()
+    def resolve_likes(parent, info, first=None, skip=None):
+        qs = parent.likes.order_by("-created")
+        return GettableMixin.filter_qs(qs, first, skip)
