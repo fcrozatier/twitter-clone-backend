@@ -7,6 +7,7 @@ from api.errors import (
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
+    UNLIKED_ERROR,
     USER_ALREADY_FOLLOWED_ERROR,
     USER_NOT_FOUND_ERROR,
 )
@@ -86,6 +87,35 @@ class CreateLike(graphene.Mutation):
         return CreateLike(likeable=likeable)
 
 
+class DeleteLike(graphene.Mutation):
+    class Arguments:
+        uid = graphene.String(required=True)
+        type = graphene.String(required=True)
+
+    Output = LikeableType
+
+    @login_required
+    def mutate(parent, info, uid, type):
+        try:
+            type_cls = getattr(info.schema, type)
+            if LikeableType in type_cls._meta.interfaces:
+                likeable = type_cls.get_node(uid)
+            else:
+                raise Exception(UNLIKED_ERROR)
+        except:
+            raise Exception(UNLIKED_ERROR)
+
+        user_uid = info.context.user.uid
+        user = UserNode.nodes.get(uid=user_uid)
+        if not user.likes.is_connected(likeable):
+            raise Exception(UNLIKED_ERROR)
+
+        user.likes.disconnect(likeable)
+        likeable.likes -= 1
+        likeable.save()
+        return likeable
+
+
 class CreateTweet(graphene.Mutation):
     class Arguments:
         content = graphene.String(required=True)
@@ -160,5 +190,6 @@ class Mutation(ObjectType):
     create_tweet = CreateTweet.Field()
     create_retweet = CreateReTweet.Field()
     create_like = CreateLike.Field()
+    unlike = DeleteLike.Field()
     create_comment = CreateComment.Field()
     follow_user = FollowUser.Field()

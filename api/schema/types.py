@@ -37,7 +37,6 @@ class LikeableType(graphene.Interface):
     @classmethod
     def resolve_type(cls, instance, info):
         type_class_name = instance.__class__.get_type()
-        print(f"resolve type {type_class_name}")
         return getattr(info.schema, type_class_name)
 
 

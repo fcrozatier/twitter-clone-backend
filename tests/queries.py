@@ -216,6 +216,22 @@ create_like = """mutation createLike(
   }
 }"""
 
+unlike = """mutation DeleteLike(
+  $uid: String!,
+  $type: String!
+) {
+  unlike(type: $type, uid: $uid){
+    __typename
+    ... on BaseDatedType {
+        uid
+      }
+    ... on LikeableType {
+      likes
+    }
+  }
+}
+"""
+
 create_comment = """mutation createComment(
     $uid: String!,
     $type: String!
