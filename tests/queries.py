@@ -192,26 +192,24 @@ create_retweet = """mutation createRetweet(
   }
 }"""
 
-create_like = """mutation createLike(
+like = """mutation createLike(
     $uid: String!,
     $type: String!,
 ) {
-  createLike(uid: $uid, type: $type){
-    likeable {
-        __typename
-      ... on BaseDatedType {
-        uid
-      }
-        likes
-      ... on TweetType{
-        content
-      }
-      ... on ReTweetType {
-        comments
-      }
-      ... on CommentType {
-        content
-      }
+  like(uid: $uid, type: $type){
+      __typename
+    ... on BaseDatedType {
+      uid
+    }
+      likes
+    ... on TweetType{
+      content
+    }
+    ... on ReTweetType {
+      comments
+    }
+    ... on CommentType {
+      content
     }
   }
 }"""

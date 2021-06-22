@@ -63,7 +63,7 @@ class CreateLike(graphene.Mutation):
         uid = graphene.String(required=True)
         type = graphene.String(required=True)
 
-    likeable = graphene.Field(LikeableType)
+    Output = LikeableType
 
     @login_required
     def mutate(parent, info, uid, type):
@@ -84,7 +84,8 @@ class CreateLike(graphene.Mutation):
         user.likes.connect(likeable)
         likeable.likes += 1
         likeable.save()
-        return CreateLike(likeable=likeable)
+
+        return likeable
 
 
 class DeleteLike(graphene.Mutation):
@@ -189,7 +190,7 @@ class FollowUser(graphene.Mutation):
 class Mutation(ObjectType):
     create_tweet = CreateTweet.Field()
     create_retweet = CreateReTweet.Field()
-    create_like = CreateLike.Field()
+    like = CreateLike.Field()
     unlike = DeleteLike.Field()
     create_comment = CreateComment.Field()
     follow_user = FollowUser.Field()
