@@ -170,22 +170,20 @@ tweet = """mutation newTweet(
   }
 }"""
 
-create_retweet = """mutation createRetweet(
+retweet = """mutation createRetweet(
     $tweetUid: String!
 ) {
-  createRetweet(tweetUid: $tweetUid){
-    retweet {
+  retweet(tweetUid: $tweetUid){
+    uid
+    likes
+    comments
+    created
+    tweet {
       uid
+      content
       likes
       comments
-      created
-      tweet {
-        uid
-        content
-        likes
-        comments
-        retweets
-      }
+      retweets
     }
   }
 }"""
