@@ -47,7 +47,7 @@ class TestProfile:
         tweet_node = create_node(type)
 
         res_create_content = graphql_query(
-            queries.create_tweet,
+            queries.tweet,
             variables={"content": tweet_node.content},
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()

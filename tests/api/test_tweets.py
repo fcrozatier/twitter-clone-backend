@@ -18,7 +18,7 @@ from api.errors import (
 class TestTweets:
     def test_unauthenticated_user_cannot_tweet(self):
         variables = {"content": "test tweet"}
-        response = graphql_query(queries.create_tweet, variables=variables).json()
+        response = graphql_query(queries.tweet, variables=variables).json()
         print(response)
         assert response["errors"][0]["message"] == LOGIN_REQUIRED_ERROR_MSG
 
@@ -26,7 +26,7 @@ class TestTweets:
         token = create_user_node(token=True)
         variables = {"content": "test tweet"}
         response = graphql_query(
-            queries.create_tweet,
+            queries.tweet,
             variables=variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {token}"},
         ).json()
@@ -46,16 +46,16 @@ class TestTweets:
         # login and make a tweet
         variables = {"content": tweet_content}
         response = graphql_query(
-            queries.create_tweet,
+            queries.tweet,
             variables=variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {token}"},
         ).json()
         print(response)
         if validity:
-            assert response["data"]["createTweet"]["tweet"]["content"] == tweet_content
-            assert response["data"]["createTweet"]["tweet"]["likes"] == 0
-            assert response["data"]["createTweet"]["tweet"]["comments"] == 0
-            assert response["data"]["createTweet"]["tweet"]["retweets"] == 0
+            assert response["data"]["tweet"]["content"] == tweet_content
+            assert response["data"]["tweet"]["likes"] == 0
+            assert response["data"]["tweet"]["comments"] == 0
+            assert response["data"]["tweet"]["retweets"] == 0
         else:
             assert response["errors"][0]["message"] == TWEET_EMPTY_ERROR
 
@@ -66,7 +66,7 @@ class TestTweets:
         for i in range(0, 10):
             variables = {"content": f"tweet {i}"}
             graphql_query(
-                queries.create_tweet,
+                queries.tweet,
                 variables=variables,
                 headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
             ).json()
