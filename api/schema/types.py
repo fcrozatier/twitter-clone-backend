@@ -1,6 +1,6 @@
 import graphene
 from accounts.models import User
-from api.errors import GENERIC_ERROR
+from api.errors import GENERIC_ERROR, USER_NOT_FOUND_ERROR
 from api.models.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.schema.loaders import UserLoader
 from graphene.types.objecttype import ObjectType
@@ -109,8 +109,12 @@ class UserType(GettableMixin, ObjectType):
     likes = graphene.List(LikeableType, first=graphene.Int(), skip=graphene.Int())
 
     @classmethod
-    def _get_node(cls, uid):
-        return UserNode.nodes.get(uid=uid)
+    def get_node(cls, uid):
+        try:
+            return UserNode.nodes.get(uid=uid)
+        except:
+            raise Exception(USER_NOT_FOUND_ERROR)
+        return node
 
     def resolve_email(parent, info):
         return User.objects.get(uid=parent.uid).email
