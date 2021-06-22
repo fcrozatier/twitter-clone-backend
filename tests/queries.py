@@ -253,15 +253,13 @@ comment = """mutation createComment(
   }
 }"""
 
-follow_user = """mutation followUser(
+follow = """mutation followUser(
   $uid: String!
 ) {
-  followUser(uid: $uid){
-    user {
-      uid
-      email
-      username
-      followersCount
-    }
+  follow(uid: $uid){
+    uid
+    email
+    username
+    followersCount
   }
 }"""

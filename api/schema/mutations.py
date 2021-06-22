@@ -167,7 +167,8 @@ class FollowUser(graphene.Mutation):
     class Arguments:
         uid = graphene.String(required=True)
 
-    user = graphene.Field(UserType)
+    # user = graphene.Field(UserType)
+    Output = UserType
 
     @login_required
     def mutate(parent, info, uid):
@@ -186,7 +187,7 @@ class FollowUser(graphene.Mutation):
         user.followers_count += 1
         user.save()
 
-        return FollowUser(user=user)
+        return user
 
 
 class Mutation(ObjectType):
@@ -195,4 +196,4 @@ class Mutation(ObjectType):
     like = CreateLike.Field()
     unlike = DeleteLike.Field()
     comment = CreateComment.Field()
-    follow_user = FollowUser.Field()
+    follow = FollowUser.Field()
