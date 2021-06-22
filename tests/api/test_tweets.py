@@ -330,7 +330,7 @@ class TestTweets:
         tweet_node = create_tweet_node()
         retweet_variables = {"tweetUid": tweet_node.uid}
         response = graphql_query(
-            queries.create_retweet,
+            queries.retweet,
             variables=retweet_variables,
             headers={
                 "HTTP_AUTHORIZATION": f"JWT {user_token}",
@@ -338,15 +338,15 @@ class TestTweets:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["createRetweet"]["retweet"]["tweet"]["uid"] == tweet_node.uid
-        assert response["data"]["createRetweet"]["retweet"]["tweet"]["retweets"] == tweet_node.retweets + 1
+        assert response["data"]["retweet"]["tweet"]["uid"] == tweet_node.uid
+        assert response["data"]["retweet"]["tweet"]["retweets"] == tweet_node.retweets + 1
 
     def test_retweet_reference_must_exist(self, create_user_node):
         user_token = create_user_node(token=True)
         invalid_tweet_uid = "1234"
         retweet_variables = {"tweetUid": invalid_tweet_uid}
         response = graphql_query(
-            queries.create_retweet,
+            queries.retweet,
             variables=retweet_variables,
             headers={
                 "HTTP_AUTHORIZATION": f"JWT {user_token}",
