@@ -16,7 +16,7 @@ class DateTimeRel(StructuredRel):
     date = DateTimeProperty(default_now=True)
 
 
-# Abstract classes
+# Abstract classes and Interfaces
 
 
 class BaseNode:
@@ -28,7 +28,7 @@ class BaseNode:
         return cls.__name__.replace("Node", "Type")
 
 
-class LikeableNode(StructuredNode):
+class LikeableNode(BaseNode, StructuredNode):
     likes = IntegerProperty(default=0)
 
 
@@ -40,17 +40,17 @@ class CommentableNode(StructuredNode):
 # Concrete classes
 
 
-class CommentNode(LikeableNode, BaseNode):
+class CommentNode(LikeableNode):
     content = StringProperty(required=True)
     about = RelationshipTo(CommentableNode, "ABOUT")
 
 
-class TweetNode(CommentableNode, LikeableNode, BaseNode):
+class TweetNode(CommentableNode, LikeableNode):
     content = StringProperty(required=True)
     retweets = IntegerProperty(default=0)
 
 
-class ReTweetNode(CommentableNode, LikeableNode, BaseNode):
+class ReTweetNode(CommentableNode, LikeableNode):
     tweet = RelationshipTo(TweetNode, "ORIGINAL")
 
 

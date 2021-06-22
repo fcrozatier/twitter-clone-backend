@@ -86,13 +86,7 @@ my_profile = """query {
     }
     likes {
       __typename
-      ... on TweetType {
-        uid
-      }
-      ... on ReTweetType {
-        uid
-      }
-      ... on CommentType {
+      ... on BaseDatedType {
         uid
       }
     }
