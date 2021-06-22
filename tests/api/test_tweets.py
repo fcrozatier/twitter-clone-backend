@@ -10,6 +10,7 @@ from api.errors import (
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
+    UNLIKED_ERROR,
 )
 
 
@@ -190,6 +191,58 @@ class TestTweets:
         print(response2)
         assert "errors" in response2
         assert response2["errors"][0]["message"] == ALREADY_LIKED_ERROR
+
+    @pytest.mark.parametrize(
+        ["type", "valid"],
+        [
+            pytest.param("TweetType", True, id="tweet"),
+            pytest.param("UserType", False, id="not likeable"),
+            pytest.param("BadType", False, id="not type"),
+        ],
+    )
+    def test_unlike(self, create_user_node, create_node, type, valid):
+        nb_likes = 99
+        likeable = create_node("TweetType", likes=nb_likes)
+
+        like_variables = {"uid": likeable.uid, "type": "TweetType"}
+        user_token = create_user_node(token=True)
+        response = graphql_query(
+            queries.create_like,
+            variables=like_variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
+        ).json()
+        print(f"response {response}")
+        assert "errors" not in response
+        assert response["data"]["createLike"]["likeable"]["likes"] == nb_likes + 1
+
+        unlike_variables = {"uid": likeable.uid, "type": type}
+        response = graphql_query(
+            queries.unlike,
+            variables=unlike_variables,
+            headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
+        ).json()
+        print(f"response {response}")
+        if valid:
+            assert "errors" not in response
+            assert response["data"]["unlike"]["uid"] == likeable.uid
+            assert response["data"]["unlike"]["likes"] == nb_likes
+            assert response["data"]["unlike"]["__typename"] == type
+        else:
+            assert "errors" in response
+            assert response["errors"][0]["message"] == UNLIKED_ERROR
+
+    def test_user_must_like_before_unlike(self, create_user_node, create_node):
+        type = "CommentType"
+        tweet = create_node(type, likes=99)
+        user_token = create_user_node(token=True)
+        variables = {"uid": tweet.uid, "type": type}
+
+        response = graphql_query(
+            queries.unlike, variables=variables, headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"}
+        ).json()
+        print(response)
+        assert "errors" in response
+        assert response["errors"][0]["message"] == UNLIKED_ERROR
 
     def test_unauthenticated_user_cannot_comment(self, faker, create_tweet_node):
         tweet = create_tweet_node()
