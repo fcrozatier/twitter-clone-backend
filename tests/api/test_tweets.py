@@ -6,8 +6,10 @@ from graphene_django.utils.testing import graphql_query
 from api.errors import (
     ALREADY_LIKED_ERROR,
     COMMENT_EMPTY_ERROR,
+    COMMENT_NOT_FOUND_ERROR,
     NOT_COMMENTABLE,
     NOT_LIKEABLE,
+    RETWEET_NOT_FOUND_ERROR,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
     UNLIKED_ERROR,
@@ -137,14 +139,14 @@ class TestTweets:
         assert response["data"]["like"]["__typename"] == type
 
     @pytest.mark.parametrize(
-        "type",
+        ["type", "error_msg"],
         [
-            pytest.param("TweetType", id="tweet"),
-            pytest.param("ReTweetType", id="retweet"),
-            pytest.param("CommentType", id="comment"),
+            pytest.param("TweetType", TWEET_NOT_FOUND_ERROR, id="tweet"),
+            pytest.param("ReTweetType", RETWEET_NOT_FOUND_ERROR, id="retweet"),
+            pytest.param("CommentType", COMMENT_NOT_FOUND_ERROR, id="comment"),
         ],
     )
-    def test_cannot_like_nonexisting_likeable(self, create_user_node, create_node, type):
+    def test_cannot_like_nonexisting_likeable(self, create_user_node, type, error_msg):
         user_token = create_user_node(token=True)
 
         not_proper_uid = "1234"
@@ -156,7 +158,7 @@ class TestTweets:
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         assert "errors" in response
-        assert response["errors"][0]["message"] == NOT_LIKEABLE
+        assert response["errors"][0]["message"] == error_msg
 
     @pytest.mark.parametrize(
         "type",
@@ -315,13 +317,14 @@ class TestTweets:
         assert response["errors"][0]["message"] == COMMENT_EMPTY_ERROR
 
     @pytest.mark.parametrize(
-        "type",
+        ["type", "error_msg"],
         [
-            pytest.param("TweetType", id="Bad uid"),
-            pytest.param("UserType", id="Bad type"),
+            pytest.param("TweetType", TWEET_NOT_FOUND_ERROR, id="Bad uid"),
+            pytest.param("UserType", NOT_COMMENTABLE, id="Bad type"),
+            pytest.param("BadType", NOT_COMMENTABLE, id="Non-existing type"),
         ],
     )
-    def test_comment_must_reference_commentable(self, faker, create_user_node, type):
+    def test_comment_must_reference_commentable(self, faker, create_user_node, type, error_msg):
         user_token = create_user_node(verified=True, token=True)
         invalid_tweet_uid = "123"
         content = faker.sentence()
@@ -333,7 +336,7 @@ class TestTweets:
         ).json()
         print(response)
         assert "errors" in response
-        assert response["errors"][0]["message"] == NOT_COMMENTABLE
+        assert response["errors"][0]["message"] == error_msg
 
     def test_authenticated_user_can_retweet(self, create_user_node, create_tweet_node):
         user_token = create_user_node(token=True)
