@@ -263,3 +263,14 @@ follow = """mutation followUser(
     followersCount
   }
 }"""
+
+unfollow = """mutation unFollowUser(
+  $uid: String!
+) {
+  unfollow(uid: $uid){
+    uid
+    email
+    username
+    followersCount
+  }
+}"""

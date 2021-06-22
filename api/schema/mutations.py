@@ -7,6 +7,7 @@ from api.errors import (
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
+    UNFOLLOW_ERROR,
     UNLIKED_ERROR,
     USER_ALREADY_FOLLOWED_ERROR,
     USER_NOT_FOUND_ERROR,
@@ -167,7 +168,6 @@ class FollowUser(graphene.Mutation):
     class Arguments:
         uid = graphene.String(required=True)
 
-    # user = graphene.Field(UserType)
     Output = UserType
 
     @login_required
@@ -190,6 +190,29 @@ class FollowUser(graphene.Mutation):
         return user
 
 
+class UnFollowUser(graphene.Mutation):
+    class Arguments:
+        uid = graphene.String(required=True)
+
+    Output = UserType
+
+    @login_required
+    def mutate(parent, info, uid):
+        user = UserType.get_node(uid=uid)
+
+        follower_uid = info.context.user.uid
+        follower = UserNode.nodes.get(uid=follower_uid)
+        if not follower.follows.is_connected(user):
+            raise Exception(UNFOLLOW_ERROR)
+
+        follower.follows.disconnect(user)
+
+        user.followers_count -= 1
+        user.save()
+
+        return user
+
+
 class Mutation(ObjectType):
     tweet = CreateTweet.Field()
     retweet = CreateReTweet.Field()
@@ -197,3 +220,4 @@ class Mutation(ObjectType):
     unlike = DeleteLike.Field()
     comment = CreateComment.Field()
     follow = FollowUser.Field()
+    unfollow = UnFollowUser.Field()
