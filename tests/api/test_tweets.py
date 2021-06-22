@@ -248,7 +248,7 @@ class TestTweets:
         tweet = create_tweet_node()
         content = faker.sentence()
         comment_variables = {"uid": tweet.uid, "type": "TweetType", "content": content}
-        response = graphql_query(queries.create_comment, variables=comment_variables).json()
+        response = graphql_query(queries.comment, variables=comment_variables).json()
         print(response)
         assert "errors" in response
         assert response["errors"][0]["message"] == LOGIN_REQUIRED_ERROR_MSG
@@ -259,7 +259,7 @@ class TestTweets:
         content = faker.sentence()
         comment_variables = {"uid": tweet.uid, "type": "TweetType", "content": content}
         response = graphql_query(
-            queries.create_comment,
+            queries.comment,
             variables=comment_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
@@ -280,15 +280,15 @@ class TestTweets:
         content = faker.sentence()
         comment_variables = {"uid": commentable.uid, "type": type, "content": content}
         response = graphql_query(
-            queries.create_comment,
+            queries.comment,
             variables=comment_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["createComment"]["commentable"]["uid"] == commentable.uid
-        assert response["data"]["createComment"]["commentable"]["commentsList"][0]["content"] == content
-        assert response["data"]["createComment"]["commentable"]["comments"] == nb_comments + 1
+        assert response["data"]["comment"]["uid"] == commentable.uid
+        assert response["data"]["comment"]["commentsList"][0]["content"] == content
+        assert response["data"]["comment"]["comments"] == nb_comments + 1
 
     def test_comment_cannot_be_empty(self, create_user_node, create_tweet_node):
         user_token = create_user_node(verified=True, token=True)
@@ -296,7 +296,7 @@ class TestTweets:
         content = ""
         comment_variables = {"content": content, "uid": tweet.uid, "type": "TweetType"}
         response = graphql_query(
-            queries.create_comment,
+            queries.comment,
             variables=comment_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()
@@ -317,7 +317,7 @@ class TestTweets:
         content = faker.sentence()
         comment_variables = {"content": content, "uid": invalid_tweet_uid, "type": type}
         response = graphql_query(
-            queries.create_comment,
+            queries.comment,
             variables=comment_variables,
             headers={"HTTP_AUTHORIZATION": f"JWT {user_token}"},
         ).json()

@@ -95,7 +95,7 @@ class TestProfile:
         comment = faker.sentence()
 
         res_create_content = graphql_query(
-            queries.create_comment,
+            queries.comment,
             variables={"uid": content_node.uid, "type": type, "content": comment},
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
