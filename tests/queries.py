@@ -226,30 +226,28 @@ unlike = """mutation DeleteLike(
 }
 """
 
-create_comment = """mutation createComment(
+comment = """mutation createComment(
     $uid: String!,
     $type: String!
     $content: String!,
 ) {
-  createComment(uid: $uid, type: $type, content: $content){
-    commentable {
-      __typename
-      comments
-      commentsList {
+  comment(uid: $uid, type: $type, content: $content){
+    __typename
+    comments
+    commentsList {
+      content
+      created
+    }
+    ... on TweetType {
+      uid
+      likes
+      content
+    }
+    ... on ReTweetType {
+      uid
+      likes
+      tweet {
         content
-        created
-      }
-      ... on TweetType {
-        uid
-        likes
-      	content
-      }
-      ... on ReTweetType {
-        uid
-        likes
-        tweet {
-          content
-        }
       }
     }
   }

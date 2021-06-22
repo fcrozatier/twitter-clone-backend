@@ -28,7 +28,8 @@ class CreateComment(graphene.Mutation):
         type = graphene.String(required=True)
         content = graphene.String(required=True)
 
-    commentable = graphene.Field(CommentableType)
+    # commentable = graphene.Field(CommentableType)
+    Output = CommentableType
 
     @login_required
     @user_verified
@@ -55,7 +56,7 @@ class CreateComment(graphene.Mutation):
         commentable.save()
 
         comment_node.about.connect(commentable)
-        return CreateComment(commentable=commentable)
+        return commentable
 
 
 class CreateLike(graphene.Mutation):
@@ -193,5 +194,5 @@ class Mutation(ObjectType):
     retweet = CreateReTweet.Field()
     like = CreateLike.Field()
     unlike = DeleteLike.Field()
-    create_comment = CreateComment.Field()
+    comment = CreateComment.Field()
     follow_user = FollowUser.Field()
