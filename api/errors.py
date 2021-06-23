@@ -2,6 +2,7 @@ TWEET_EMPTY_ERROR = "Your tweet is empty"
 TWEET_NOT_FOUND_ERROR = "Tweet not found"
 
 RETWEET_NOT_FOUND_ERROR = "Retweet not found"
+ALREADY_RETWEETED_ERROR = "You already have retweeted this"
 
 COMMENT_EMPTY_ERROR = "Your comment is empty"
 NOT_COMMENTABLE = "This cannot be commented"

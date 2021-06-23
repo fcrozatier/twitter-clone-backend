@@ -260,9 +260,9 @@ tweet = """mutation newTweet(
 }"""
 
 retweet = """mutation createRetweet(
-    $tweetUid: String!
+    $uid: String!
 ) {
-  retweet(tweetUid: $tweetUid){
+  retweet(uid: $uid){
     uid
     likes
     comments

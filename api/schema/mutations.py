@@ -2,6 +2,7 @@ import graphene
 from accounts.decorators import login_required, user_verified
 from api.errors import (
     ALREADY_LIKED_ERROR,
+    ALREADY_RETWEETED_ERROR,
     COMMENT_EMPTY_ERROR,
     NOT_COMMENTABLE,
     NOT_LIKEABLE,
@@ -141,23 +142,24 @@ class CreateTweet(graphene.Mutation):
 
 class CreateReTweet(graphene.Mutation):
     class Arguments:
-        tweet_uid = graphene.String(required=True)
+        uid = graphene.String(required=True)
 
     Output = ReTweetType
 
     @login_required
-    def mutate(parent, info, tweet_uid):
-        tweet_node = TweetType.get_node(uid=tweet_uid)
+    def mutate(parent, info, uid):
+        user = UserType.get_node_from_context(info)
+        tweet_node = TweetType.get_node(uid=uid)
+
+        if user.has_retweeted(tweet_node):
+            raise Exception(ALREADY_RETWEETED_ERROR)
 
         tweet_node.retweets += 1
         tweet_node.save()
 
         retweet_node = ReTweetNode().save()
         retweet_node.tweet.connect(tweet_node)
-
-        user_uid = info.context.user.uid
-        user_node = UserType.get_node(uid=user_uid)
-        user_node.retweets.connect(retweet_node)
+        user.retweets.connect(retweet_node)
 
         return retweet_node
 
