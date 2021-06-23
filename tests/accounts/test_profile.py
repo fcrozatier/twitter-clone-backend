@@ -315,3 +315,55 @@ class TestProfile:
         assert parser.parse(response["data"]["myContent"][0]["created"]) > parser.parse(
             response["data"]["myContent"][-1]["created"]
         )
+
+    def test_my_feed(self, faker, create_user_node, create_node):
+        user = create_user_node()
+        to_follow = create_user_node(verified=True)
+
+        for i in range(0, 2):
+            content = faker.sentence()
+            resp = graphql_query(
+                queries.tweet,
+                variables={"content": content},
+                headers={"HTTP_AUTHORIZATION": f"JWT {to_follow['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        for i in range(0, 2):
+            tweet = create_node("TweetType")
+            resp = graphql_query(
+                queries.retweet,
+                variables={"tweetUid": tweet.uid},
+                headers={"HTTP_AUTHORIZATION": f"JWT {to_follow['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        for i in range(0, 2):
+            tweet = create_node("TweetType")
+            comment = faker.sentence()
+            resp = graphql_query(
+                queries.comment,
+                variables={"uid": tweet.uid, "type": "TweetType", "content": comment},
+                headers={"HTTP_AUTHORIZATION": f"JWT {to_follow['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        resp = graphql_query(
+            queries.follow,
+            variables={"uid": str(to_follow["node"].uid)},
+            headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+        )
+        assert "errors" not in resp
+
+        response = graphql_query(
+            queries.my_feed,
+            variables={"skip": 0, "limit": 11},
+            headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+        ).json()
+        print(response)
+
+        assert "errors" not in response
+        assert len(response["data"]["myFeed"]) == 6
+        assert parser.parse(response["data"]["myFeed"][0]["created"]) > parser.parse(
+            response["data"]["myFeed"][-1]["created"]
+        )
