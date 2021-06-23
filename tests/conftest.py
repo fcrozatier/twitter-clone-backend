@@ -78,13 +78,13 @@ def create_user_node(valid_user_payload):
 @pytest.mark.django_db
 def create_tweet_node(faker):
     def make_tweet_node(
-        content=faker.sentence(),
+        content=None,
         likes=randint(0, 100),
         retweets=randint(0, 100),
         comments=randint(0, 100),
     ):
         tweet = TweetNode(
-            content=content,
+            content=content or faker.sentence(),
             likes=likes,
             retweets=retweets,
             comments=comments,
@@ -105,31 +105,31 @@ def create_node(faker):
 
     def choose_maker(
         type,
-        likes=randint(0, 100),
-        content=faker.sentence(),
-        retweets=randint(0, 100),
-        comments=randint(0, 100),
+        likes=None,
+        content=None,
+        retweets=None,
+        comments=None,
     ):
         def make_tweet_node():
             tweet = TweetNode(
-                likes=likes,
-                content=content,
-                comments=comments,
-                retweets=retweets,
+                likes=likes or randint(0, 100),
+                content=content or faker.sentence(),
+                comments=comments or randint(0, 100),
+                retweets=retweets or randint(0, 100),
             ).save()
             return tweet
 
         def make_retweet_node():
             retweet = ReTweetNode(
-                likes=likes,
-                comments=comments,
+                likes=likes or randint(0, 100),
+                comments=comments or randint(0, 100),
             ).save()
             return retweet
 
         def make_comment_node():
             comment = CommentNode(
-                likes=likes,
-                content=content,
+                likes=likes or randint(0, 100),
+                content=content or faker.sentence(),
             ).save()
             return comment
 
