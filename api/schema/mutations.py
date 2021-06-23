@@ -49,8 +49,7 @@ class CreateComment(graphene.Mutation):
 
         comment_node = CommentNode(content=content).save()
 
-        user_uid = info.context.user.uid
-        user_node = UserType.get_node(uid=user_uid)
+        user_node = UserType.get_node_from_context(info)
         user_node.comments.connect(comment_node)
 
         commentable.comments += 1
@@ -79,8 +78,7 @@ class CreateLike(graphene.Mutation):
         else:
             raise Exception(NOT_LIKEABLE)
 
-        user_uid = info.context.user.uid
-        user = UserType.get_node(uid=user_uid)
+        user = UserType.get_node_from_context(info)
         if user.likes.is_connected(likeable):
             raise Exception(ALREADY_LIKED_ERROR)
 
@@ -109,8 +107,7 @@ class DeleteLike(graphene.Mutation):
         except:
             raise Exception(UNLIKED_ERROR)
 
-        user_uid = info.context.user.uid
-        user = UserType.get_node(uid=user_uid)
+        user = UserType.get_node_from_context(info)
         if not user.likes.is_connected(likeable):
             raise Exception(UNLIKED_ERROR)
 
@@ -129,12 +126,11 @@ class CreateTweet(graphene.Mutation):
     @login_required
     @user_verified
     def mutate(parent, info, content):
-        user_uid = info.context.user.uid
         if content == "":
             raise Exception(TWEET_EMPTY_ERROR)
 
         tweet = TweetNode(content=content).save()
-        user = UserType.get_node(uid=user_uid)
+        user = UserType.get_node_from_context(info)
         user.tweets.connect(tweet)
 
         return tweet
@@ -174,8 +170,7 @@ class FollowUser(graphene.Mutation):
     def mutate(parent, info, uid):
         user = UserType.get_node(uid=uid)
 
-        follower_uid = info.context.user.uid
-        follower = UserNode.nodes.get(uid=follower_uid)
+        follower = UserType.get_node_from_context(info)
         if follower.follows.is_connected(user):
             raise Exception(USER_ALREADY_FOLLOWED_ERROR)
 
@@ -197,8 +192,7 @@ class UnFollowUser(graphene.Mutation):
     def mutate(parent, info, uid):
         user = UserType.get_node(uid=uid)
 
-        follower_uid = info.context.user.uid
-        follower = UserType.get_node(uid=follower_uid)
+        follower = UserType.get_node_from_context(info)
         if not follower.follows.is_connected(user):
             raise Exception(UNFOLLOW_ERROR)
 
