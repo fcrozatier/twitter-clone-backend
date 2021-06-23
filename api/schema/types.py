@@ -110,10 +110,10 @@ class UserType(GettableMixin, ObjectType):
     class Meta:
         interfaces = (BaseDatedType,)
 
-    uid = graphene.String(required=True, source="uid")
+    uid = graphene.String(required=True)
     email = graphene.String()
     username = graphene.String()
-    followers_count = graphene.Int(source="followers_count")
+    followers_count = graphene.Int()
     tweets = graphene.List(TweetType, first=graphene.Int(), skip=graphene.Int())
     retweets = graphene.List(ReTweetType, first=graphene.Int(), skip=graphene.Int())
     comments = graphene.List(CommentType, first=graphene.Int(), skip=graphene.Int())
