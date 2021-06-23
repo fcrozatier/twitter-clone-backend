@@ -10,22 +10,33 @@ class Query(graphene.ObjectType):
     my_feed = graphene.List(LikeableType, skip=graphene.Int(), limit=graphene.Int())
 
     user_profile = graphene.Field(UserType, uid=graphene.String())
+    user_content = graphene.List(
+        LikeableType,
+        uid=graphene.String(),
+        skip=graphene.Int(),
+        limit=graphene.Int(),
+    )
 
     @login_required
     def resolve_my_profile(root, info):
-        user_node = UserType.get_user_from_context(info)
+        user_node = UserType.get_node_from_context(info)
         return user_node
 
     @login_required
     def resolve_my_content(root, info, **kwargs):
-        user_node = UserType.get_user_from_context(info)
+        user_node = UserType.get_node_from_context(info)
         return user_node.content(skip=kwargs["skip"], limit=kwargs["limit"])
 
     @login_required
     def resolve_my_feed(root, info, **kwargs):
-        user_node = UserType.get_user_from_context(info)
+        user_node = UserType.get_node_from_context(info)
         return user_node.feed(skip=kwargs["skip"], limit=kwargs["limit"])
 
     @login_required
     def resolve_user_profile(root, info, uid):
         return UserType.get_node(uid)
+
+    @login_required
+    def resolve_user_content(root, info, uid, **kwargs):
+        user_node = UserType.get_node(uid)
+        return user_node.content(skip=kwargs["skip"], limit=kwargs["limit"])

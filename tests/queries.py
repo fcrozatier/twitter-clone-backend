@@ -190,6 +190,41 @@ my_content = """query myContent(
 }
 """
 
+user_content = """query userContent(
+  $uid: String!,
+  $skip: Int=0,
+  $limit: Int=10
+) {
+  userContent(uid: $uid, skip: $skip, limit: $limit) {
+    __typename
+    ... on BaseDatedType {
+      uid
+      created
+    }
+    ... on LikeableType {
+      likes
+    }
+    ... on TweetType {
+      content
+    }
+    ... on CommentType {
+      content
+      about {
+        __typename
+        ... on TweetType {
+          content
+        }
+        ... on ReTweetType {
+          tweet {
+            content
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
 my_feed = """query myFeed(
   $skip: Int=0,
   $limit: Int=10

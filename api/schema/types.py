@@ -130,7 +130,7 @@ class UserType(GettableMixin, ObjectType):
         return Exception(USER_NOT_FOUND_ERROR)
 
     @classmethod
-    def get_user_from_context(cls, info):
+    def get_node_from_context(cls, info):
         user_uid = info.context.user.uid
         return cls._get_node(user_uid)
 
