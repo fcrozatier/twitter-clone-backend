@@ -70,7 +70,7 @@ class UserNode(BaseNode, StructuredNode):
         params = {"userUID": self.uid, "tweetUID": tweet.uid}
         results, columns = self.cypher(
             """
-            match (u:UserNode)-[:RETWEETS]->(n)-[:ORIGINAL]->(t:TweetNode)
+            match (u:UserNode)-[:RETWEETS]->(n:ReTweetNode)-[:ORIGINAL]->(t:TweetNode)
             where u.uid = $userUID and t.uid = $tweetUID
             return count(n)
             """,
@@ -85,10 +85,7 @@ class UserNode(BaseNode, StructuredNode):
 
         for item in results:
             node_class_name = likeables_set.intersection(item[0].labels).pop()
-
-            for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass):
-                if name == node_class_name:
-                    node_class = obj
+            node_class = globals()[node_class_name]
 
             likeable_list.append(node_class.inflate(item[0]))
         return likeable_list
@@ -97,7 +94,8 @@ class UserNode(BaseNode, StructuredNode):
         params = {"uid": self.uid, "skip": skip, "limit": limit}
 
         results, columns = self.cypher(
-            """match (u:UserNode)-[r]->(n:LikeableNode)
+            """
+            match (u:UserNode)-[r]->(n:LikeableNode)
             where u.uid = $uid
             return n
             order by r.date desc
@@ -113,7 +111,8 @@ class UserNode(BaseNode, StructuredNode):
         params = {"uid": self.uid, "skip": skip, "limit": limit}
 
         results, columns = self.cypher(
-            """match (u:UserNode)-[:FOLLOWS]->(f:UserNode)-[r]->(n:LikeableNode)
+            """
+            match (u:UserNode)-[:FOLLOWS]->(f:UserNode)-[r]->(n:LikeableNode)
             where u.uid = $uid
             return n
             order by r.date desc
