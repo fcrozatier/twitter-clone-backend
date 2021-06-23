@@ -52,12 +52,12 @@ class CommentType(GettableMixin, ObjectType):
     content = graphene.String(required=True)
     about = graphene.Field(LikeableType)
 
-    @classmethod
-    def _get_node(cls, uid):
+    @staticmethod
+    def _get_node(uid):
         return CommentNode.nodes.get(uid=uid)
 
-    @classmethod
-    def _get_error(cls):
+    @staticmethod
+    def _get_error():
         return Exception(COMMENT_NOT_FOUND_ERROR)
 
     def resolve_about(parent, info):
@@ -79,12 +79,12 @@ class TweetType(GettableMixin, ObjectType):
     content = graphene.String(required=True)
     retweets = graphene.Int()
 
-    @classmethod
-    def _get_node(cls, uid):
+    @staticmethod
+    def _get_node(uid):
         return TweetNode.nodes.get(uid=uid)
 
-    @classmethod
-    def _get_error(cls):
+    @staticmethod
+    def _get_error():
         return Exception(TWEET_NOT_FOUND_ERROR)
 
 
@@ -94,12 +94,12 @@ class ReTweetType(GettableMixin, ObjectType):
 
     tweet = graphene.Field(TweetType)
 
-    @classmethod
-    def _get_node(cls, uid):
+    @staticmethod
+    def _get_node(uid):
         return ReTweetNode.nodes.get(uid=uid)
 
-    @classmethod
-    def _get_error(cls):
+    @staticmethod
+    def _get_error():
         return Exception(RETWEET_NOT_FOUND_ERROR)
 
     def resolve_tweet(parent, info):
@@ -121,12 +121,12 @@ class UserType(GettableMixin, ObjectType):
     follows = graphene.List(lambda: UserType, first=graphene.Int(), skip=graphene.Int())
     likes = graphene.List(LikeableType, first=graphene.Int(), skip=graphene.Int())
 
-    @classmethod
-    def _get_node(cls, uid):
+    @staticmethod
+    def _get_node(uid):
         return UserNode.nodes.get(uid=uid)
 
-    @classmethod
-    def _get_error(cls):
+    @staticmethod
+    def _get_error():
         return Exception(USER_NOT_FOUND_ERROR)
 
     @classmethod
