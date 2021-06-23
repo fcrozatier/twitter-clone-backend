@@ -50,6 +50,7 @@ class CommentType(GettableMixin, ObjectType):
         interfaces = (LikeableType, BaseDatedType)
 
     content = graphene.String(required=True)
+    about = graphene.Field(LikeableType)
 
     @classmethod
     def _get_node(cls, uid):
@@ -58,6 +59,9 @@ class CommentType(GettableMixin, ObjectType):
     @classmethod
     def _get_error(cls):
         return Exception(COMMENT_NOT_FOUND_ERROR)
+
+    def resolve_about(parent, info):
+        return parent.about.end
 
 
 class CommentableType(graphene.Interface):
@@ -68,6 +72,9 @@ class CommentableType(graphene.Interface):
     def resolve_type(cls, instance, info):
         type_class_name = instance.__class__.get_type()
         return getattr(info.schema, type_class_name)
+
+    def resolve_comments_list(parent, info):
+        return parent.commented.all()
 
 
 class TweetType(GettableMixin, ObjectType):
@@ -84,9 +91,6 @@ class TweetType(GettableMixin, ObjectType):
     @classmethod
     def _get_error(cls):
         return Exception(TWEET_NOT_FOUND_ERROR)
-
-    def resolve_comments_list(parent, info):
-        return parent.commented.all()
 
 
 class ReTweetType(GettableMixin, ObjectType):
@@ -105,9 +109,6 @@ class ReTweetType(GettableMixin, ObjectType):
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
-
-    def resolve_comments_list(parent, info):
-        return parent.commented.all()
 
 
 class UserType(GettableMixin, ObjectType):
@@ -132,6 +133,11 @@ class UserType(GettableMixin, ObjectType):
     @classmethod
     def _get_error(cls):
         return Exception(USER_NOT_FOUND_ERROR)
+
+    @classmethod
+    def get_user_from_context(cls, info):
+        user_uid = info.context.user.uid
+        return cls._get_node(user_uid)
 
     def resolve_email(parent, info):
         return User.objects.get(uid=parent.uid).email
