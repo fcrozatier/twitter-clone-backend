@@ -172,6 +172,40 @@ my_content = """query myContent(
     ... on TweetType {
       content
     }
+    ... on CommentType {
+      content
+      about {
+        __typename
+        ... on TweetType {
+          content
+        }
+        ... on ReTweetType {
+          tweet {
+            content
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+my_feed = """query myFeed(
+  $skip: Int=0,
+  $limit: Int=10
+) {
+  myFeed(skip: $skip, limit: $limit) {
+    __typename
+    ... on BaseDatedType {
+      uid
+      created
+    }
+    ... on LikeableType {
+      likes
+    }
+    ... on TweetType {
+      content
+    }
   }
 }
 """
@@ -252,22 +286,26 @@ comment = """mutation createComment(
     $content: String!,
 ) {
   comment(uid: $uid, type: $type, content: $content){
-    __typename
-    comments
-    commentsList {
-      content
-      created
-    }
-    ... on TweetType {
-      uid
-      likes
-      content
-    }
-    ... on ReTweetType {
-      uid
-      likes
-      tweet {
+    about {
+      __typename
+      ... on CommentableType {
+        comments
+        commentsList {
+          content
+          created
+        }
+      }
+      ... on TweetType {
+        uid
+        likes
         content
+      }
+      ... on ReTweetType {
+        uid
+        likes
+        tweet {
+          content
+        }
       }
     }
   }

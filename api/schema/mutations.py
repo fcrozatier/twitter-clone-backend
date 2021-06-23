@@ -13,6 +13,7 @@ from api.errors import (
 from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
 from api.schema.types import (
     CommentableType,
+    CommentType,
     LikeableType,
     ReTweetType,
     TweetType,
@@ -27,7 +28,7 @@ class CreateComment(graphene.Mutation):
         type = graphene.String(required=True)
         content = graphene.String(required=True)
 
-    Output = CommentableType
+    Output = CommentType
 
     @login_required
     @user_verified
@@ -55,7 +56,7 @@ class CreateComment(graphene.Mutation):
         commentable.save()
 
         comment_node.about.connect(commentable)
-        return commentable
+        return comment_node
 
 
 class CreateLike(graphene.Mutation):
