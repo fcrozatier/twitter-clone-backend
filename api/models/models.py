@@ -66,6 +66,21 @@ class UserNode(BaseNode, StructuredNode):
     followers = RelationshipFrom("UserNode", "FOLLOWS", model=DateTimeRel)
     followers_count = IntegerProperty(default=0)
 
+    @staticmethod
+    def auto_inflate_to_likeables(results):
+        likeables_set = set(["TweetNode", "ReTweetNode", "CommentNode"])
+        likeable_list = []
+
+        for item in results:
+            node_class_name = likeables_set.intersection(item[0].labels).pop()
+
+            for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+                if name == node_class_name:
+                    node_class = obj
+
+            likeable_list.append(node_class.inflate(item[0]))
+        return likeable_list
+
     def content(self, skip=0, limit=100):
         params = {"uid": self.uid, "skip": skip, "limit": limit}
 
@@ -80,16 +95,20 @@ class UserNode(BaseNode, StructuredNode):
             params=params,
         )
 
-        likeableset = set(["TweetNode", "ReTweetNode", "CommentNode"])
-        likeable_list = []
+        return UserNode.auto_inflate_to_likeables(results)
 
-        for item in results:
-            node_class_name = likeableset.intersection(item[0].labels).pop()
+    def feed(self, skip=0, limit=100):
+        params = {"uid": self.uid, "skip": skip, "limit": limit}
 
-            for name, obj in inspect.getmembers(sys.modules[__name__], inspect.isclass):
-                if name == node_class_name:
-                    node_class = obj
+        results, columns = self.cypher(
+            """match (u:UserNode)-[r]->(n:LikeableNode)
+            where u.uid = $uid
+            return n
+            order by r.date desc
+            skip $skip
+            limit $limit
+            """,
+            params=params,
+        )
 
-            likeable_list.append(node_class.inflate(item[0]))
-
-        return likeable_list
+        return UserNode.auto_inflate_to_likeables(results)
