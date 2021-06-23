@@ -101,7 +101,7 @@ class UserNode(BaseNode, StructuredNode):
         params = {"uid": self.uid, "skip": skip, "limit": limit}
 
         results, columns = self.cypher(
-            """match (u:UserNode)-[r]->(n:LikeableNode)
+            """match (u:UserNode)-[:FOLLOWS]->(f:UserNode)-[r]->(n:LikeableNode)
             where u.uid = $uid
             return n
             order by r.date desc
