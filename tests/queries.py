@@ -156,6 +156,26 @@ user_subs = """query userSubs(
 }
 """
 
+my_content = """query myContent(
+  $skip: Int=0,
+  $limit: Int=10
+) {
+  myContent(skip: $skip, limit: $limit) {
+    __typename
+    ... on BaseDatedType {
+      uid
+      created
+    }
+    ... on LikeableType {
+      likes
+    }
+    ... on TweetType {
+      content
+    }
+  }
+}
+"""
+
 
 # Tweet queries
 tweet = """mutation newTweet(
