@@ -298,9 +298,10 @@ class TestTweets:
         ).json()
         print(response)
         assert "errors" not in response
-        assert response["data"]["comment"]["uid"] == commentable.uid
-        assert response["data"]["comment"]["commentsList"][0]["content"] == content
-        assert response["data"]["comment"]["comments"] == nb_comments + 1
+        assert response["data"]["comment"]["about"]["__typename"] == type
+        assert response["data"]["comment"]["about"]["uid"] == commentable.uid
+        assert response["data"]["comment"]["about"]["commentsList"][0]["content"] == content
+        assert response["data"]["comment"]["about"]["comments"] == nb_comments + 1
 
     def test_comment_cannot_be_empty(self, create_user_node, create_tweet_node):
         user_token = create_user_node(verified=True, token=True)
