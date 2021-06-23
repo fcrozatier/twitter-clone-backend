@@ -1,5 +1,6 @@
 import pytest
 from api.errors import USER_NOT_FOUND_ERROR
+from dateutil import parser
 from graphene_django.utils.testing import graphql_query
 from tests import queries
 
@@ -270,3 +271,47 @@ class TestProfile:
         assert response["data"]["userProfile"]["follows"] != []
         assert response["data"]["userProfile"]["follows"][0]["uid"] == str(followed_user["node"].uid)
         assert response["data"]["userProfile"]["follows"][0]["email"] == (followed_user["node"].email)
+
+    def test_my_feed(self, faker, create_user_node, create_node):
+        user = create_user_node(verified=True)
+
+        for i in range(0, 3):
+            content = faker.sentence()
+            resp = graphql_query(
+                queries.tweet,
+                variables={"content": content},
+                headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        for i in range(0, 3):
+            tweet = create_node("TweetType")
+            resp = graphql_query(
+                queries.retweet,
+                variables={"tweetUid": tweet.uid},
+                headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        for i in range(0, 3):
+            tweet = create_node("TweetType")
+            comment = faker.sentence()
+            resp = graphql_query(
+                queries.comment,
+                variables={"uid": tweet.uid, "type": "TweetType", "content": comment},
+                headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        response = graphql_query(
+            queries.my_content,
+            variables={"skip": 2, "limit": 5},
+            headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+        ).json()
+        print(response)
+
+        assert "errors" not in response
+        assert len(response["data"]["myContent"]) == 5
+        assert parser.parse(response["data"]["myContent"][0]["created"]) > parser.parse(
+            response["data"]["myContent"][-1]["created"]
+        )
