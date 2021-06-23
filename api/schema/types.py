@@ -61,17 +61,12 @@ class CommentType(GettableMixin, ObjectType):
         return Exception(COMMENT_NOT_FOUND_ERROR)
 
     def resolve_about(parent, info):
-        return parent.about.end
+        return parent.about.single()
 
 
 class CommentableType(graphene.Interface):
     comments = graphene.Int()
     comments_list = graphene.List(CommentType)
-
-    @classmethod
-    def resolve_type(cls, instance, info):
-        type_class_name = instance.__class__.get_type()
-        return getattr(info.schema, type_class_name)
 
     def resolve_comments_list(parent, info):
         return parent.commented.all()
