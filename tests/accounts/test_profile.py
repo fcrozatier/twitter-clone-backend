@@ -272,7 +272,7 @@ class TestProfile:
         assert response["data"]["userProfile"]["follows"][0]["uid"] == str(followed_user["node"].uid)
         assert response["data"]["userProfile"]["follows"][0]["email"] == (followed_user["node"].email)
 
-    def test_my_feed(self, faker, create_user_node, create_node):
+    def test_my_content(self, faker, create_user_node, create_node):
         user = create_user_node(verified=True)
 
         for i in range(0, 3):
