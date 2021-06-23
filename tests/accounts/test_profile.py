@@ -316,6 +316,51 @@ class TestProfile:
             response["data"]["myContent"][-1]["created"]
         )
 
+    def test_user_content(self, faker, create_user_node, create_node):
+        me_user = create_user_node()
+        user = create_user_node(verified=True)
+
+        for i in range(0, 3):
+            content = faker.sentence()
+            resp = graphql_query(
+                queries.tweet,
+                variables={"content": content},
+                headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        for i in range(0, 3):
+            tweet = create_node("TweetType")
+            resp = graphql_query(
+                queries.retweet,
+                variables={"tweetUid": tweet.uid},
+                headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        for i in range(0, 3):
+            tweet = create_node("TweetType")
+            comment = faker.sentence()
+            resp = graphql_query(
+                queries.comment,
+                variables={"uid": tweet.uid, "type": "TweetType", "content": comment},
+                headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
+            ).json()
+            assert "errors" not in resp
+
+        response = graphql_query(
+            queries.user_content,
+            variables={"uid": str(user["node"].uid), "skip": 2, "limit": 5},
+            headers={"HTTP_AUTHORIZATION": f"JWT {me_user['token']}"},
+        ).json()
+        print(response)
+
+        assert "errors" not in response
+        assert len(response["data"]["userContent"]) == 5
+        assert parser.parse(response["data"]["userContent"][0]["created"]) > parser.parse(
+            response["data"]["userContent"][-1]["created"]
+        )
+
     def test_my_feed(self, faker, create_user_node, create_node):
         user = create_user_node()
         to_follow = create_user_node(verified=True)
