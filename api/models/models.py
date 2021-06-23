@@ -66,6 +66,18 @@ class UserNode(BaseNode, StructuredNode):
     followers = RelationshipFrom("UserNode", "FOLLOWS", model=DateTimeRel)
     followers_count = IntegerProperty(default=0)
 
+    def has_retweeted(self, tweet):
+        params = {"userUID": self.uid, "tweetUID": tweet.uid}
+        results, columns = self.cypher(
+            """
+            match (u:UserNode)-[:RETWEETS]->(n)-[:ORIGINAL]->(t:TweetNode)
+            where u.uid = $userUID and t.uid = $tweetUID
+            return count(n)
+            """,
+            params=params,
+        )
+        return results[0][0] > 0
+
     @staticmethod
     def auto_inflate_to_likeables(results):
         likeables_set = set(["TweetNode", "ReTweetNode", "CommentNode"])
