@@ -69,7 +69,7 @@ class TestProfile:
 
         res_create_content = graphql_query(
             queries.retweet,
-            variables={"tweetUid": tweet_node.uid},
+            variables={"uid": tweet_node.uid},
             headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
         ).json()
         assert "errors" not in res_create_content
@@ -288,7 +288,7 @@ class TestProfile:
             tweet = create_node("TweetType")
             resp = graphql_query(
                 queries.retweet,
-                variables={"tweetUid": tweet.uid},
+                variables={"uid": tweet.uid},
                 headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
             ).json()
             assert "errors" not in resp
@@ -333,7 +333,7 @@ class TestProfile:
             tweet = create_node("TweetType")
             resp = graphql_query(
                 queries.retweet,
-                variables={"tweetUid": tweet.uid},
+                variables={"uid": tweet.uid},
                 headers={"HTTP_AUTHORIZATION": f"JWT {user['token']}"},
             ).json()
             assert "errors" not in resp
@@ -378,7 +378,7 @@ class TestProfile:
             tweet = create_node("TweetType")
             resp = graphql_query(
                 queries.retweet,
-                variables={"tweetUid": tweet.uid},
+                variables={"uid": tweet.uid},
                 headers={"HTTP_AUTHORIZATION": f"JWT {to_follow['token']}"},
             ).json()
             assert "errors" not in resp

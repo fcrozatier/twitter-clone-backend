@@ -5,6 +5,7 @@ from graphene_django.utils.testing import graphql_query
 
 from api.errors import (
     ALREADY_LIKED_ERROR,
+    ALREADY_RETWEETED_ERROR,
     COMMENT_EMPTY_ERROR,
     COMMENT_NOT_FOUND_ERROR,
     NOT_COMMENTABLE,
@@ -342,7 +343,7 @@ class TestTweets:
     def test_authenticated_user_can_retweet(self, create_user_node, create_tweet_node):
         user_token = create_user_node(token=True)
         tweet_node = create_tweet_node()
-        retweet_variables = {"tweetUid": tweet_node.uid}
+        retweet_variables = {"uid": tweet_node.uid}
         response = graphql_query(
             queries.retweet,
             variables=retweet_variables,
@@ -355,10 +356,35 @@ class TestTweets:
         assert response["data"]["retweet"]["tweet"]["uid"] == tweet_node.uid
         assert response["data"]["retweet"]["tweet"]["retweets"] == tweet_node.retweets + 1
 
+    def test_cannot_retweet_twice(self, create_user_node, create_tweet_node):
+        user_token = create_user_node(token=True)
+        tweet_node = create_tweet_node()
+        retweet_variables = {"uid": tweet_node.uid}
+        response = graphql_query(
+            queries.retweet,
+            variables=retweet_variables,
+            headers={
+                "HTTP_AUTHORIZATION": f"JWT {user_token}",
+            },
+        ).json()
+        print(response)
+        assert "errors" not in response
+
+        response = graphql_query(
+            queries.retweet,
+            variables=retweet_variables,
+            headers={
+                "HTTP_AUTHORIZATION": f"JWT {user_token}",
+            },
+        ).json()
+        print(response)
+        assert "errors" in response
+        assert response["errors"][0]["message"] == ALREADY_RETWEETED_ERROR
+
     def test_retweet_reference_must_exist(self, create_user_node):
         user_token = create_user_node(token=True)
         invalid_tweet_uid = "1234"
-        retweet_variables = {"tweetUid": invalid_tweet_uid}
+        retweet_variables = {"uid": invalid_tweet_uid}
         response = graphql_query(
             queries.retweet,
             variables=retweet_variables,
