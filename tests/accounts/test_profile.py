@@ -311,10 +311,12 @@ class TestProfile:
         print(response)
 
         assert "errors" not in response
-        assert len(response["data"]["myContent"]) == 5
-        assert parser.parse(response["data"]["myContent"][0]["created"]) > parser.parse(
-            response["data"]["myContent"][-1]["created"]
+        assert len(response["data"]["myProfile"]["content"]) == 5
+        assert parser.parse(response["data"]["myProfile"]["content"][0]["created"]) > parser.parse(
+            response["data"]["myProfile"]["content"][-1]["created"]
         )
+        assert (response["data"]["myProfile"]["content"][0]["__typename"]) == "CommentType"
+        assert (response["data"]["myProfile"]["content"][-1]["__typename"]) == "TweetType"
 
     def test_user_content(self, faker, create_user_node, create_node):
         me_user = create_user_node()
@@ -356,10 +358,12 @@ class TestProfile:
         print(response)
 
         assert "errors" not in response
-        assert len(response["data"]["userContent"]) == 5
-        assert parser.parse(response["data"]["userContent"][0]["created"]) > parser.parse(
-            response["data"]["userContent"][-1]["created"]
+        assert len(response["data"]["userProfile"]["content"]) == 5
+        assert parser.parse(response["data"]["userProfile"]["content"][0]["created"]) > parser.parse(
+            response["data"]["userProfile"]["content"][-1]["created"]
         )
+        assert response["data"]["userProfile"]["content"][0]["__typename"] == "CommentType"
+        assert response["data"]["userProfile"]["content"][-1]["__typename"] == "TweetType"
 
     def test_my_feed(self, faker, create_user_node, create_node):
         user = create_user_node()
