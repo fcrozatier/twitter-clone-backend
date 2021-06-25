@@ -78,6 +78,67 @@ class TestTweets:
         assert "errors" in response
         assert response["errors"][0]["message"] == TWEET_TOO_LONG_ERROR
 
+    @pytest.mark.parametrize(
+        "hashtag",
+        [
+            pytest.param(["test"], id="one tag"),
+            pytest.param(["tag1", "tag2"], id="two tags"),
+        ],
+    )
+    def test_tweet_with_hashtags(self, faker, create_user_node, hashtag):
+        my_token = create_user_node(verified=True, token=True)
+        tweet_content = faker.sentence()
+
+        response = graphql_query(
+            queries.tweet,
+            variables={"content": tweet_content, "hashtags": hashtag},
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+
+        assert "errors" not in response
+        assert response["data"]["tweet"]["hashtags"][0]["tag"] == hashtag[0]
+        assert response["data"]["tweet"]["hashtags"][0]["tags"] == 1
+        assert len(response["data"]["tweet"]["hashtags"]) == len(hashtag)
+
+    @pytest.mark.parametrize(
+        "hashtag",
+        [
+            pytest.param(None, id="none"),
+            pytest.param([], id="empty"),
+        ],
+    )
+    def test_tweet_with_no_hashtags(self, faker, create_user_node, hashtag):
+        my_token = create_user_node(verified=True, token=True)
+        tweet_content = faker.sentence()
+
+        response = graphql_query(
+            queries.tweet,
+            variables={"content": tweet_content, "hashtags": hashtag},
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+
+        assert "errors" not in response
+        assert response["data"]["tweet"]["hashtags"] == []
+
+    def test_hashtag_reuse(self, faker, create_user_node):
+        my_token = create_user_node(verified=True, token=True)
+        hashtag = "test"
+        nb_tags = 3
+
+        for i in range(0, nb_tags):
+            tweet_content = faker.sentence()
+            response = graphql_query(
+                queries.tweet,
+                variables={"content": tweet_content, "hashtags": hashtag},
+                headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+            ).json()
+            print(response)
+            assert "errors" not in response
+
+        assert response["data"]["tweet"]["hashtags"][0]["tags"] == nb_tags
+
     def test_tweets_filter(self, create_user_node):
         my_token = create_user_node(verified=True, token=True)
 
