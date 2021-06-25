@@ -1,6 +1,3 @@
-import inspect
-import sys
-
 from neomodel import (
     DateTimeProperty,
     IntegerProperty,
@@ -9,6 +6,7 @@ from neomodel import (
     StructuredNode,
     StructuredRel,
     UniqueIdProperty,
+    db,
 )
 from neomodel.relationship_manager import RelationshipFrom
 
@@ -78,22 +76,10 @@ class UserNode(BaseNode, StructuredNode):
         )
         return results[0][0] > 0
 
-    @staticmethod
-    def auto_inflate_to_likeables(results):
-        likeables_set = set(["TweetNode", "ReTweetNode", "CommentNode"])
-        likeable_list = []
-
-        for item in results:
-            node_class_name = likeables_set.intersection(item[0].labels).pop()
-            node_class = globals()[node_class_name]
-
-            likeable_list.append(node_class.inflate(item[0]))
-        return likeable_list
-
     def content(self, skip=0, limit=100):
         params = {"uid": self.uid, "skip": skip, "limit": limit}
 
-        results, columns = self.cypher(
+        results, meta = db.cypher_query(
             """
             match (u:UserNode)-[r]->(n:LikeableNode)
             where u.uid = $uid
@@ -103,14 +89,15 @@ class UserNode(BaseNode, StructuredNode):
             limit $limit
             """,
             params=params,
+            resolve_objects=True,
         )
 
-        return UserNode.auto_inflate_to_likeables(results)
+        return [item[0] for item in results]
 
     def feed(self, skip=0, limit=100):
         params = {"uid": self.uid, "skip": skip, "limit": limit}
 
-        results, columns = self.cypher(
+        results, meta = db.cypher_query(
             """
             match (u:UserNode)-[:FOLLOWS]->(f:UserNode)-[r]->(n:LikeableNode)
             where u.uid = $uid
@@ -120,6 +107,7 @@ class UserNode(BaseNode, StructuredNode):
             limit $limit
             """,
             params=params,
+            resolve_objects=True,
         )
 
-        return UserNode.auto_inflate_to_likeables(results)
+        return [item[0] for item in results]
