@@ -7,11 +7,12 @@ from api.errors import (
     NOT_COMMENTABLE,
     NOT_LIKEABLE,
     TWEET_EMPTY_ERROR,
+    TWEET_TOO_LONG_ERROR,
     UNFOLLOW_ERROR,
     UNLIKED_ERROR,
     USER_ALREADY_FOLLOWED_ERROR,
 )
-from api.models import CommentNode, ReTweetNode, TweetNode, UserNode
+from api.models import CommentNode, ReTweetNode, TweetNode
 from api.schema.types import (
     CommentableType,
     CommentType,
@@ -120,14 +121,17 @@ class DeleteLike(graphene.Mutation):
 class CreateTweet(graphene.Mutation):
     class Arguments:
         content = graphene.String(required=True)
+        hashtags = graphene.List(graphene.String)
 
     Output = TweetType
 
     @login_required
     @user_verified
-    def mutate(parent, info, content):
+    def mutate(parent, info, content, hashtags=None):
         if content == "":
             raise Exception(TWEET_EMPTY_ERROR)
+        if len(content) >= 150:
+            raise Exception(TWEET_TOO_LONG_ERROR)
 
         tweet = TweetNode(content=content).save()
         user = UserType.get_node_from_context(info)

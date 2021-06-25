@@ -1,5 +1,6 @@
 TWEET_EMPTY_ERROR = "Your tweet is empty"
 TWEET_NOT_FOUND_ERROR = "Tweet not found"
+TWEET_TOO_LONG_ERROR = "Your tweet must be less than 150 characters"
 
 RETWEET_NOT_FOUND_ERROR = "Retweet not found"
 ALREADY_RETWEETED_ERROR = "You already have retweeted this"
