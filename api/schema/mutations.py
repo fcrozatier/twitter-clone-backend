@@ -16,6 +16,7 @@ from api.models import CommentNode, ReTweetNode, TweetNode
 from api.schema.types import (
     CommentableType,
     CommentType,
+    HashtagType,
     LikeableType,
     ReTweetType,
     TweetType,
@@ -121,7 +122,7 @@ class DeleteLike(graphene.Mutation):
 class CreateTweet(graphene.Mutation):
     class Arguments:
         content = graphene.String(required=True)
-        hashtags = graphene.List(graphene.String)
+        hashtags = graphene.List(graphene.NonNull(graphene.String))
 
     Output = TweetType
 
@@ -136,6 +137,13 @@ class CreateTweet(graphene.Mutation):
         tweet = TweetNode(content=content).save()
         user = UserType.get_node_from_context(info)
         user.tweets.connect(tweet)
+
+        if hashtags and hashtags != []:
+            for tag in hashtags:
+                hashtag_node = HashtagType.get_node(tag.strip())
+                hashtag_node.tags += 1
+                hashtag_node.save()
+                tweet.hashtags.connect(hashtag_node)
 
         return tweet
 

@@ -252,14 +252,19 @@ my_feed = """query myFeed(
 
 # Tweet queries
 tweet = """mutation newTweet(
-    $content: String!
+    $content: String!,
+    $hashtags: [String!],
 ){
-  tweet(content: $content){
+  tweet(content: $content, hashtags: $hashtags){
       content
       likes
       comments
       retweets
       created
+      hashtags {
+        tag
+        tags
+      }
   }
 }"""
 
