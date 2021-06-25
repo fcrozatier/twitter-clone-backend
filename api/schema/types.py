@@ -6,7 +6,7 @@ from api.errors import (
     TWEET_NOT_FOUND_ERROR,
     USER_NOT_FOUND_ERROR,
 )
-from api.models.models import CommentNode, ReTweetNode, TweetNode, UserNode
+from api.models.models import CommentNode, HashtagNode, ReTweetNode, TweetNode, UserNode
 from api.schema.loaders import UserLoader
 from graphene.types.objecttype import ObjectType
 
@@ -17,7 +17,7 @@ class GettableMixin:
     @classmethod
     def get_node(cls, uid):
         try:
-            node = cls._get_node(uid=uid)
+            node = cls._get_node(uid)
         except:
             raise cls._get_error()
         return node
@@ -43,6 +43,23 @@ class LikeableType(graphene.Interface):
     def resolve_type(cls, instance, info):
         type_class_name = instance.__class__.get_type()
         return getattr(info.schema, type_class_name)
+
+
+class HashtagType(GettableMixin, ObjectType):
+    class Meta:
+        interfaces = (BaseDatedType,)
+
+    tag = graphene.String(required=True)
+    tags = graphene.Int()
+    # tagged_by = graphene.List(lambda: TweetType)
+
+    @staticmethod
+    def _get_node(tag):
+        hashtag_node = HashtagNode.nodes.get_or_none(tag=tag)
+        if hashtag_node:
+            return hashtag_node
+        else:
+            return HashtagNode(tag=tag).save()
 
 
 class CommentType(GettableMixin, ObjectType):
@@ -78,6 +95,7 @@ class TweetType(GettableMixin, ObjectType):
 
     content = graphene.String(required=True)
     retweets = graphene.Int()
+    hashtags = graphene.List(HashtagType)
 
     @staticmethod
     def _get_node(uid):
@@ -86,6 +104,9 @@ class TweetType(GettableMixin, ObjectType):
     @staticmethod
     def _get_error():
         return Exception(TWEET_NOT_FOUND_ERROR)
+
+    def resolve_hashtags(parent, info):
+        return parent.hashtags.all()
 
 
 class ReTweetType(GettableMixin, ObjectType):

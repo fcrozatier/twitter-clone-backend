@@ -22,6 +22,7 @@ class DateTimeRel(StructuredRel):
 
 class BaseNode(StructuredNode):
     __abstract_node__ = True
+
     uid = UniqueIdProperty()
     created = DateTimeProperty(default_now=True)
 
@@ -42,8 +43,10 @@ class CommentableNode(StructuredNode):
 # Concrete classes
 
 
-class TagNode(BaseNode):
-    pass
+class HashtagNode(BaseNode):
+    tag = StringProperty(required=True, unique_index=True)
+    tags = IntegerProperty(default=0)
+    tagged_by = RelationshipFrom("TweetNode", "HASHTAG")
 
 
 class CommentNode(LikeableNode):
@@ -52,8 +55,9 @@ class CommentNode(LikeableNode):
 
 
 class TweetNode(CommentableNode, LikeableNode):
-    content = StringProperty(required=True)
+    content = StringProperty(required=True, max_length=150)
     retweets = IntegerProperty(default=0)
+    hashtags = RelationshipTo(HashtagNode, "HASHTAG", model=DateTimeRel)
 
 
 class ReTweetNode(CommentableNode, LikeableNode):
