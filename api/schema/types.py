@@ -120,6 +120,7 @@ class UserType(GettableMixin, ObjectType):
     followers = graphene.List(lambda: UserType, first=graphene.Int(), skip=graphene.Int())
     follows = graphene.List(lambda: UserType, first=graphene.Int(), skip=graphene.Int())
     likes = graphene.List(LikeableType, first=graphene.Int(), skip=graphene.Int())
+    content = graphene.List(LikeableType, skip=graphene.Int(), limit=graphene.Int())
 
     @staticmethod
     def _get_node(uid):
@@ -165,3 +166,6 @@ class UserType(GettableMixin, ObjectType):
     def resolve_likes(parent, info, first=None, skip=None):
         qs = parent.likes.order_by("-created")
         return GettableMixin.filter_qs(qs, first, skip)
+
+    def resolve_content(parent, info, **kwargs):
+        return parent.content(skip=kwargs["skip"], limit=kwargs["limit"])

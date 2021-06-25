@@ -156,32 +156,34 @@ user_subs = """query userSubs(
 }
 """
 
-my_content = """query myContent(
+my_content = """query Content(
   $skip: Int=0,
   $limit: Int=10
 ) {
-  myContent(skip: $skip, limit: $limit) {
-    __typename
-    ... on BaseDatedType {
-      uid
-      created
-    }
-    ... on LikeableType {
-      likes
-    }
-    ... on TweetType {
-      content
-    }
-    ... on CommentType {
-      content
-      about {
+  myProfile {
+    content(skip: $skip, limit: $limit){
         __typename
-        ... on TweetType {
-          content
-        }
-        ... on ReTweetType {
-          tweet {
+      ... on BaseDatedType {
+        uid
+        created
+      }
+      ... on LikeableType {
+        likes
+      }
+      ... on TweetType {
+        content
+      }
+      ... on CommentType {
+        content
+        about {
+          __typename
+          ... on TweetType {
             content
+          }
+          ... on ReTweetType {
+            tweet {
+              content
+            }
           }
         }
       }
@@ -195,28 +197,30 @@ user_content = """query userContent(
   $skip: Int=0,
   $limit: Int=10
 ) {
-  userContent(uid: $uid, skip: $skip, limit: $limit) {
-    __typename
-    ... on BaseDatedType {
-      uid
-      created
-    }
-    ... on LikeableType {
-      likes
-    }
-    ... on TweetType {
-      content
-    }
-    ... on CommentType {
-      content
-      about {
-        __typename
-        ... on TweetType {
-          content
-        }
-        ... on ReTweetType {
-          tweet {
+  userProfile(uid: $uid) {
+    content(skip: $skip, limit: $limit){
+      __typename
+      ... on BaseDatedType {
+        uid
+        created
+      }
+      ... on LikeableType {
+        likes
+      }
+      ... on TweetType {
+        content
+      }
+      ... on CommentType {
+        content
+        about {
+          __typename
+          ... on TweetType {
             content
+          }
+          ... on ReTweetType {
+            tweet {
+              content
+            }
           }
         }
       }
