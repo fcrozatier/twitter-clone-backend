@@ -249,6 +249,19 @@ my_feed = """query myFeed(
 }
 """
 
+search = """query mySearch(
+  $tag: String!,
+  $skip: Int,
+  $limit: Int
+) {
+  search(tag: $tag, skip: $skip, limit: $limit){
+    uid
+    content
+    created
+  }
+}
+"""
+
 
 # Tweet queries
 tweet = """mutation newTweet(
