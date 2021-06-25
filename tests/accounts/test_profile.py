@@ -416,3 +416,30 @@ class TestProfile:
         assert parser.parse(response["data"]["myFeed"][0]["created"]) > parser.parse(
             response["data"]["myFeed"][-1]["created"]
         )
+
+    def test_tag_search(self, faker, create_user_node):
+        my_token = create_user_node(verified=True, token=True)
+        tweets_tagged = 3
+        tweets_content = [f"tweet {i}" for i in range(0, tweets_tagged)]
+
+        tag = faker.word()
+
+        for i in range(0, tweets_tagged):
+            response = graphql_query(
+                queries.tweet,
+                variables={"content": tweets_content[i], "hashtags": [tag]},
+                headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+            ).json()
+            assert "errors" not in response
+
+        response = graphql_query(
+            queries.search,
+            variables={"tag": tag},
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+        assert "errors" not in response
+        assert len(response["data"]["search"]) == tweets_tagged
+        assert parser.parse(response["data"]["search"][0]["created"]) > parser.parse(
+            response["data"]["search"][-1]["created"]
+        )

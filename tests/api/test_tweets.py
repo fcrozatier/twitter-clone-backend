@@ -97,7 +97,7 @@ class TestTweets:
         print(response)
 
         assert "errors" not in response
-        assert response["data"]["tweet"]["hashtags"][0]["tag"] == hashtag[0]
+        assert response["data"]["tweet"]["hashtags"][0]["tag"] in hashtag
         assert response["data"]["tweet"]["hashtags"][0]["tags"] == 1
         assert len(response["data"]["tweet"]["hashtags"]) == len(hashtag)
 
