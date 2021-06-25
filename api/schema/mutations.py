@@ -140,7 +140,7 @@ class CreateTweet(graphene.Mutation):
 
         if hashtags and hashtags != []:
             for tag in hashtags:
-                hashtag_node = HashtagType.get_node(tag.strip())
+                hashtag_node = HashtagType.get_or_create(tag.strip())
                 hashtag_node.tags += 1
                 hashtag_node.save()
                 tweet.hashtags.connect(hashtag_node)

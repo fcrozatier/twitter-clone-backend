@@ -51,10 +51,9 @@ class HashtagType(GettableMixin, ObjectType):
 
     tag = graphene.String(required=True)
     tags = graphene.Int()
-    # tagged_by = graphene.List(lambda: TweetType)
 
     @staticmethod
-    def _get_node(tag):
+    def get_or_create(tag):
         hashtag_node = HashtagNode.nodes.get_or_none(tag=tag)
         if hashtag_node:
             return hashtag_node
