@@ -13,6 +13,7 @@ from api.errors import (
     RETWEET_NOT_FOUND_ERROR,
     TWEET_EMPTY_ERROR,
     TWEET_NOT_FOUND_ERROR,
+    TWEET_TOO_LONG_ERROR,
     UNLIKED_ERROR,
 )
 
@@ -62,7 +63,22 @@ class TestTweets:
         else:
             assert response["errors"][0]["message"] == TWEET_EMPTY_ERROR
 
-    def test_tweets_order_filter(self, create_user_node):
+    def test_tweet_must_be_less_than_150(self, create_user_node):
+        my_token = create_user_node(verified=True, token=True)
+
+        long_content = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
+        response = graphql_query(
+            queries.tweet,
+            variables={"content": long_content},
+            headers={"HTTP_AUTHORIZATION": f"JWT {my_token}"},
+        ).json()
+        print(response)
+
+        assert "errors" in response
+        assert response["errors"][0]["message"] == TWEET_TOO_LONG_ERROR
+
+    def test_tweets_filter(self, create_user_node):
         my_token = create_user_node(verified=True, token=True)
 
         # login and make tweets
