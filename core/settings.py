@@ -118,8 +118,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-AWS_ACCESS_KEY_ID = "TPJR2H36JV2H5R5W3EXG"
-AWS_SECRET_ACCESS_KEY = "6qibiCH1vCQo8iODtHcP38Gr+7EbeeAFZT8qekIjcec"
+AWS_ACCESS_KEY_ID = os.getenv("SPACES_API_KEY")
+AWS_SECRET_ACCESS_KEY = os.getenv("SPACES_API_SECRET")
 
 AWS_STORAGE_BUCKET_NAME = "sciency"
 AWS_S3_ENDPOINT_URL = "https://ams3.digitaloceanspaces.com/"
