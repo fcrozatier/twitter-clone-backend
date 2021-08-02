@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages",
     "django_extensions",
     "django_neomodel",
     "graphene_django",
@@ -117,8 +118,25 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATIC_URL = "/static/"
+AWS_ACCESS_KEY_ID = "TPJR2H36JV2H5R5W3EXG"
+AWS_SECRET_ACCESS_KEY = "6qibiCH1vCQo8iODtHcP38Gr+7EbeeAFZT8qekIjcec"
+
+AWS_STORAGE_BUCKET_NAME = "sciency"
+AWS_S3_ENDPOINT_URL = " https://sciency.ams3.digitaloceanspaces.com"
+AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": "max-age=86400",
+}
+AWS_LOCATION = "static"
+AWS_DEFAULT_ACL = "public-read"
+
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+STATIC_URL = "{}/{}/".format(AWS_S3_ENDPOINT_URL, AWS_LOCATION)
+STATIC_ROOT = "static/"
+
+if DEBUG:
+    STATIC_URL = "/static/"
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

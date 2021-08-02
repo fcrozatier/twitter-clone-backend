@@ -8,6 +8,8 @@ attrs==21.2.0
 Babel==2.9.1
 billiard==3.6.4.0
 black==21.4b0
+boto3==1.18.11
+botocore==1.21.11
 celery==5.0.5
 certifi==2020.12.5
 cffi==1.14.5
@@ -28,6 +30,7 @@ django-graphql-auth==0.3.16
 django-graphql-jwt==0.3.0
 django-neomodel==0.0.6
 django-rest-knox==4.1.0
+django-storages==1.11.1
 djangorestframework==3.7.7
 docutils==0.17.1
 execnet==1.8.0
@@ -47,6 +50,7 @@ inflection==0.5.1
 iniconfig==1.1.1
 isort==5.8.0
 Jinja2==2.11.3
+jmespath==0.10.0
 kombu==5.0.2
 lazy-import==0.2.2
 MarkupSafe==1.1.1
@@ -87,6 +91,7 @@ pytz==2020.5
 regex==2021.4.4
 requests==2.25.1
 Rx==1.6.1
+s3transfer==0.5.0
 Shapely==1.7.1
 singledispatch==3.6.1
 six==1.15.0
@@ -108,6 +113,6 @@ urllib3==1.26.4
 uvicorn==0.13.4
 vine==5.0.0
 wasmer==1.0.0
-wasmer-compiler-cranelift==1.0.0
+wasmer_compiler_cranelift==1.0.0
 wcwidth==0.2.5
 whitenoise==3.3.1
