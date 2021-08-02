@@ -122,7 +122,7 @@ AWS_ACCESS_KEY_ID = "TPJR2H36JV2H5R5W3EXG"
 AWS_SECRET_ACCESS_KEY = "6qibiCH1vCQo8iODtHcP38Gr+7EbeeAFZT8qekIjcec"
 
 AWS_STORAGE_BUCKET_NAME = "sciency"
-AWS_S3_ENDPOINT_URL = " https://sciency.ams3.digitaloceanspaces.com"
+AWS_S3_ENDPOINT_URL = " https://ams3.digitaloceanspaces.com"
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=86400",
 }
