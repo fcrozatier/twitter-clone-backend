@@ -12,11 +12,11 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["twtr.sciency.co"]
 
 from neomodel import config
 
-config.DATABASE_URL = f"{os.getenv('NEO4J_PROTOCOL')}://{os.getenv('NEO4J_USERNAME')}:{os.getenv('NEO4J_PASSWORD')}@{os.getenv('NEO4J_URL')}:{os.getenv('NEO4J_PORT')}"
+config.DATABASE_URL = f"{os.getenv('NEO4J_URI')}"
 
 
 INSTALLED_APPS = [
