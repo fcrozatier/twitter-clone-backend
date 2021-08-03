@@ -10,7 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG")
+DEBUG = os.getenv("DJANGO_DEBUG") == "True"
 
 ALLOWED_HOSTS = ["twtr.sciency.co"]
 
@@ -138,13 +138,21 @@ if DEBUG:
     STATIC_URL = "/static/"
     STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Emails
+
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+DEFAULT_FROM_EMAIL = "bonjour@sciency.co"
+
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 
 GRAPH_MODELS = {
     "all_applications": True,
     "group_models": True,
 }
-
 
 GRAPHENE = {
     "SCHEMA": "core.schema.schema",
@@ -175,7 +183,6 @@ AUTHENTICATION_BACKENDS = [
     "graphql_auth.backends.GraphQLAuthBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
-
 
 AUTH_USER_MODEL = "accounts.User"
 
