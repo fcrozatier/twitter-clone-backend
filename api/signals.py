@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 from graphql_auth.signals import user_registered
 
-from api.models import UserNode
+from api.models.models import UserNode
 
 
 @receiver(user_registered)

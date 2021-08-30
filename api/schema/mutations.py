@@ -12,7 +12,7 @@ from api.errors import (
     UNLIKED_ERROR,
     USER_ALREADY_FOLLOWED_ERROR,
 )
-from api.models import CommentNode, ReTweetNode, TweetNode
+from api.models.models import CommentNode, ReTweetNode, TweetNode
 from api.schema.types import (
     CommentableType,
     CommentType,

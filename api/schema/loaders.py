@@ -1,4 +1,4 @@
-from api.models import UserNode
+from api.models.models import UserNode
 from promise import Promise
 from promise.dataloader import DataLoader
 
