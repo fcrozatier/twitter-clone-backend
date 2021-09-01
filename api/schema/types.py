@@ -67,6 +67,7 @@ class CommentType(GettableMixin, ObjectType):
 
     content = graphene.String(required=True)
     about = graphene.Field(LikeableType)
+    author = graphene.Field(lambda: UserType)
 
     @staticmethod
     def _get_node(uid):
@@ -78,6 +79,9 @@ class CommentType(GettableMixin, ObjectType):
 
     def resolve_about(parent, info):
         return parent.about.single()
+
+    def resolve_author(parent, info):
+        return parent.author.single()
 
 
 class CommentableType(graphene.Interface):
@@ -95,6 +99,7 @@ class TweetType(GettableMixin, ObjectType):
     content = graphene.String(required=True)
     retweets = graphene.Int()
     hashtags = graphene.List(HashtagType)
+    author = graphene.Field(lambda: UserType)
 
     @staticmethod
     def _get_node(uid):
@@ -107,12 +112,16 @@ class TweetType(GettableMixin, ObjectType):
     def resolve_hashtags(parent, info):
         return parent.hashtags.all()
 
+    def resolve_author(parent, info):
+        return parent.author.single()
+
 
 class ReTweetType(GettableMixin, ObjectType):
     class Meta:
         interfaces = (LikeableType, CommentableType, BaseDatedType)
 
     tweet = graphene.Field(TweetType)
+    author = graphene.Field(lambda: UserType)
 
     @staticmethod
     def _get_node(uid):
@@ -124,6 +133,10 @@ class ReTweetType(GettableMixin, ObjectType):
 
     def resolve_tweet(parent, info):
         return parent.tweet.single()
+
+    def resolve_author(parent, info):
+        return parent.author.single()
+
 
 
 class UserType(GettableMixin, ObjectType):

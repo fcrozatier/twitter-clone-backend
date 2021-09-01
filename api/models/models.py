@@ -52,19 +52,22 @@ class HashtagNode(BaseNode):
 class CommentNode(LikeableNode):
     content = StringProperty(required=True)
     about = RelationshipTo(CommentableNode, "ABOUT")
+    author = RelationshipFrom("UserNode", "COMMENTS", model=DateTimeRel)
 
 
 class TweetNode(CommentableNode, LikeableNode):
     content = StringProperty(required=True, max_length=150)
     retweets = IntegerProperty(default=0)
     hashtags = RelationshipTo(HashtagNode, "HASHTAG", model=DateTimeRel)
-
+    author = RelationshipFrom("UserNode", "TWEETS", model=DateTimeRel)
 
 class ReTweetNode(CommentableNode, LikeableNode):
     tweet = RelationshipTo(TweetNode, "ORIGINAL")
+    author = RelationshipFrom("UserNode", "RETWEETS", model=DateTimeRel)
 
 
 class UserNode(BaseNode):
+    username = StringProperty()
     tweets = RelationshipTo(TweetNode, "TWEETS", model=DateTimeRel)
     retweets = RelationshipTo(ReTweetNode, "RETWEETS", model=DateTimeRel)
     likes = RelationshipTo(LikeableNode, "LIKES", model=DateTimeRel)
