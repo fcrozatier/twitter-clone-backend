@@ -156,7 +156,7 @@ user_subs = """query userSubs(
 }
 """
 
-my_content = """query Content(
+my_content = """query content(
   $skip: Int=0,
   $limit: Int=10
 ) {

@@ -92,7 +92,7 @@ class UserNode(BaseNode):
 
         results, meta = db.cypher_query(
             """
-            match (u:UserNode)-[r]->(n:LikeableNode)
+            match (u:UserNode)-[r:TWEETS|RETWEETS]->(n:LikeableNode)
             where u.uid = $uid
             return n
             order by r.date desc
@@ -110,7 +110,7 @@ class UserNode(BaseNode):
 
         results, meta = db.cypher_query(
             """
-            match (u:UserNode)-[:FOLLOWS]->(f:UserNode)-[r]->(n:LikeableNode)
+            match (u:UserNode)-[:FOLLOWS]->(f:UserNode)-[r:TWEETS|RETWEETS]->(n:LikeableNode)
             where u.uid = $uid
             return n
             order by r.date desc

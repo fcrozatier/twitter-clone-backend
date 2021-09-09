@@ -138,7 +138,6 @@ class ReTweetType(GettableMixin, ObjectType):
         return parent.author.single()
 
 
-
 class UserType(GettableMixin, ObjectType):
     class Meta:
         interfaces = (BaseDatedType,)

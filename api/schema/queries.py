@@ -1,6 +1,6 @@
 import graphene
 from accounts.decorators import login_required
-from api.schema.types import LikeableType, TweetType, UserType
+from api.schema.types import CommentType, LikeableType, TweetType, UserType
 from neomodel import db
 
 
@@ -20,6 +20,13 @@ class Query(graphene.ObjectType):
     search = graphene.List(
         TweetType,
         tag=graphene.String(required=True),
+        skip=graphene.Int(),
+        limit=graphene.Int(),
+    )
+
+    get_comments = graphene.List(
+        CommentType,
+        uid=graphene.String(required=True),
         skip=graphene.Int(),
         limit=graphene.Int(),
     )
@@ -47,6 +54,25 @@ class Query(graphene.ObjectType):
             match (h:HashtagNode)<-[r:HASHTAG]-(t:TweetNode)
             where h.tag = $tag
             return t
+            order by t.created desc
+            skip $skip
+            limit $limit
+            """,
+            params=params,
+            resolve_objects=True,
+        )
+
+        return [item[0] for item in results]
+
+    @login_required
+    def resolve_get_comments(root, info, uid, skip=0, limit=100, **kwargs):
+        params = {"uid": uid, "skip": skip, "limit": limit}
+
+        results, meta = db.cypher_query(
+            """
+            match (t:CommentableNode)<-[r:ABOUT]-(c:CommentNode)
+            where t.uid = $uid
+            return c
             order by t.created desc
             skip $skip
             limit $limit
